@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using GeneticAlgorithm.Algorithm.Model;
+﻿using GeneticAlgorithm.Algorithm.Model;
 using GeneticAlgorithm.Utils;
 
 namespace GeneticAlgorithm.Algorithm.Crossover
@@ -14,8 +13,9 @@ namespace GeneticAlgorithm.Algorithm.Crossover
         {
             var index = ThreadSafeRandom.NextInt(ch1.Genome.Length * 32);
 
-            for (int i = 0, gen = 0; i < index; i++, gen += i / 32)
+            for (var i = 0; i < index; i++)
             {
+                var gen = i / 32;
                 var bit = i - gen * 32;
 
                 var value1 = ch1.Genome[gen][bit];

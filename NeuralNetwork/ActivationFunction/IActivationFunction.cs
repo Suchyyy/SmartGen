@@ -1,6 +1,4 @@
-﻿using System.Net.Security;
-
-namespace NeuralNetwork.ActivationFunction
+﻿namespace NeuralNetwork.ActivationFunction
 {
     public interface IActivationFunction
     {

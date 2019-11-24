@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using GeneticAlgorithm.Algorithm.Crossover;
 using GeneticAlgorithm.Algorithm.Model;
 using GeneticAlgorithm.Algorithm.Mutation;
@@ -46,7 +45,9 @@ namespace GeneticAlgorithm
 
         public GeneticAlgorithm(int populationSize, int genomeSize)
         {
-            Population = Enumerable.Repeat(new Chromosome(genomeSize), populationSize).ToList();
+            Population= new List<Chromosome>();
+            
+            for(var i=0;i<populationSize;i++) Population.Add(new Chromosome(populationSize));
         }
 
         public void NextGeneration()

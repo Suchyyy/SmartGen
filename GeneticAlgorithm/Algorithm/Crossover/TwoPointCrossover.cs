@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using GeneticAlgorithm.Algorithm.Model;
+﻿using GeneticAlgorithm.Algorithm.Model;
 using GeneticAlgorithm.Utils;
 
 namespace GeneticAlgorithm.Algorithm.Crossover
@@ -22,10 +21,10 @@ namespace GeneticAlgorithm.Algorithm.Crossover
                 end = tmp;
             }
 
-            for (int i = start, gen = start / 32; i < end; i++, gen += i / 32)
+            for (var i = start; i < end; i++)
             {
+                var gen = i / 32;
                 var bit = i - gen * 32;
-
                 var value1 = ch1.Genome[gen][bit];
                 var value2 = ch2.Genome[gen][bit];
 

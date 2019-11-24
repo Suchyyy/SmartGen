@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using GeneticAlgorithm.Algorithm.Model;
@@ -29,6 +29,11 @@ namespace NeuralNetwork
             }
 
             return Layers.Last().Outputs;
+        }
+
+        public int GetConnectionCount()
+        {
+            return (int) Layers.Sum(layer => Math.Pow(layer.Neurons.Count, 2));
         }
 
         public void SetWeights(Chromosome chromosome)

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using NeuralNetwork.ActivationFunction;
 
@@ -15,22 +13,34 @@ namespace NeuralNetwork
         {
             var prevSize = previousLayer.Neurons.Count;
 
-            Neurons = Enumerable.Repeat(new Neuron(prevSize), size).ToList();
-            Outputs = Enumerable.Repeat(0.0, size).ToList();
+            Neurons = new List<Neuron>();
+            Outputs = new List<double>();
+            
+            for (var i = 0; i < size; i++)
+            {
+                Neurons.Add(new Neuron(prevSize));
+                Outputs.Add(0);
+            }
         }
 
         public Layer(int size, int inputs)
         {
-            Neurons = Enumerable.Repeat(new Neuron(inputs), size).ToList();
+            Neurons = new List<Neuron>();
+            Outputs = new List<double>();
+            
+            for (var i = 0; i < size; i++)
+            {
+                Neurons.Add(new Neuron(inputs));
+                Outputs.Add(0);
+            }
         }
 
         public void CalculateOutputs(IEnumerable<double> inputs, IActivationFunction activationFunction)
         {
-            Parallel.ForEach(Neurons,
-                (neuron, state, index) =>
-                {
-                    Outputs[(int) index] = activationFunction.GetValue(neuron.GetOutput(inputs));
-                });
+            for (var i = 0; i < Outputs.Count; i++)
+            {
+                Outputs[i] = activationFunction.GetValue(Neurons[i].GetOutput(inputs));
+            }
         }
     }
 }

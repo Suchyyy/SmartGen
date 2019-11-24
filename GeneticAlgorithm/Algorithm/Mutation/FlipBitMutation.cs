@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using GeneticAlgorithm.Algorithm.Model;
+﻿using GeneticAlgorithm.Algorithm.Model;
 using GeneticAlgorithm.Utils;
 
 namespace GeneticAlgorithm.Algorithm.Mutation

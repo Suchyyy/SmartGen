@@ -16,10 +16,7 @@ namespace GeneticAlgorithm.Algorithm.Model
             Fitness = 0;
             Genome = new BitVector32[length];
 
-            for (var i = 0; i < length; i++)
-            {
-                Genome[i] = new BitVector32(ThreadSafeRandom.NextInt(-1, 1));
-            }
+            for (var i = 0; i < length; i++) Genome[i] = new BitVector32(ThreadSafeRandom.NextInt(-1, 1));
         }
 
         public IList<double> GetWeights()
