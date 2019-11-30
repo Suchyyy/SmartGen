@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using GeneticAlgorithm.Algorithm.Model;
 using GeneticAlgorithm.Utils;
@@ -10,11 +11,11 @@ namespace GeneticAlgorithm.Algorithm.Crossover
         private readonly int _populationSize;
         protected readonly IList<Chromosome> NewPopulation;
 
-        private readonly double _crossoverProbability;
+        protected readonly double CrossoverProbability;
 
         protected Crossover(double crossoverProbability, int populationSize)
         {
-            _crossoverProbability = crossoverProbability;
+            CrossoverProbability = crossoverProbability;
             _populationSize = populationSize;
             NewPopulation = Enumerable.Repeat<Chromosome>(null, populationSize).ToList();
         }
@@ -25,8 +26,6 @@ namespace GeneticAlgorithm.Algorithm.Crossover
         {
             for (var i = 0; i < _populationSize; i += 2)
             {
-                if (ThreadSafeRandom.NextDouble() > _crossoverProbability) continue;
-
                 var parent1 = Population[ThreadSafeRandom.NextInt(_populationSize)];
 
                 Chromosome parent2;
@@ -37,6 +36,11 @@ namespace GeneticAlgorithm.Algorithm.Crossover
                 } while (parent1.Equals(parent2));
 
                 CrossChromosomes(parent1, parent2, i);
+            }
+
+            for (var i = 0; i < _populationSize; i++)
+            {
+                Population[i] = NewPopulation[i];
             }
         }
     }

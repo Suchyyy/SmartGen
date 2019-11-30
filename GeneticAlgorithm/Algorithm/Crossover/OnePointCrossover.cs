@@ -12,13 +12,18 @@ namespace GeneticAlgorithm.Algorithm.Crossover
 
         protected override void CrossChromosomes(Chromosome parent1, Chromosome parent2, int index)
         {
+            var child1 = parent1.Clone();
+            var child2 = parent2.Clone();
+            
+            NewPopulation[index] = child1;
+            NewPopulation[index + 1] = child2;
+
+            if (ThreadSafeRandom.NextDouble() > CrossoverProbability) return;
+            
             var genomeLength = parent1.Genome.Length * 32;
 
             var start = 0;
             var end = ThreadSafeRandom.NextInt(genomeLength);
-
-            var child1 = parent1.Clone();
-            var child2 = parent2.Clone();
 
             if (end > genomeLength * 0.5)
             {
@@ -48,9 +53,6 @@ namespace GeneticAlgorithm.Algorithm.Crossover
                     child2.Genome[gen][mask] = parent1.Genome[gen][mask];
                 }
             }
-
-            Population[index] = child1;
-            Population[index + 1] = child2;
         }
     }
 }
