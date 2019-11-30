@@ -18,7 +18,7 @@ namespace GeneticAlgorithm.Algorithm.Crossover
         {
             foreach (var ch1 in Population)
             {
-                if (ThreadSafeRandom.NextDouble() < _crossoverProbability) continue;
+                if (ThreadSafeRandom.NextDouble() > _crossoverProbability) continue;
 
                 Chromosome ch2;
 
