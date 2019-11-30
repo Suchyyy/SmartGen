@@ -11,7 +11,6 @@ namespace NeuralNetwork.ActivationFunction
             _t = t;
         }
 
-
         public double GetValue(double x) => 1.0 / (1.0 + Math.Exp(-x * _t));
     }
 }

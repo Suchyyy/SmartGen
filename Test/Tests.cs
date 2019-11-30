@@ -12,27 +12,32 @@ using NUnit.Framework;
 
 namespace Test
 {
-    class SampleData
+    internal class SampleData
     {
-        public double X { get; }
-        public double Y { get; }
         public int ObjectClass { get; }
+
+        public double[] Data { get; }
 
         public SampleData()
         {
-            X = ThreadSafeRandom.NextDouble();
-            Y = ThreadSafeRandom.NextDouble();
+            var x = ThreadSafeRandom.NextDouble() * 2.0 - 1.0;
+            var y = ThreadSafeRandom.NextDouble() * 2.0 - 1.0;
 
-            ObjectClass = 1;
+            if (x >= 0.0) x += 0.2;
+            if (x >= 1.0) x = 1.0;
 
-            if (X * 20.0 - 10 > 0 && X * 20.0 - 10 < 1) X += 0.1;
-            if (X * 20.0 - 10 < 0 && X * 20.0 - 10 > -1) X -= 0.1;
+            if (y >= 0.0) y += 0.2;
+            if (y >= 1.0) y = 1.0;
 
-            if (Y * 20.0 - 10 > 0 && Y * 20.0 - 10 < 1) Y += 0.1;
-            if (Y * 20.0 - 10 < 0 && Y * 20.0 - 10 > -1) Y -= 0.1;
+            if (x <= 0.0) x -= 0.2;
+            if (x <= -1.0) x = -1.0;
 
-            if (X * 20.0 - 10.0 > 0.0) ObjectClass += 1;
-            if (Y * 20.0 - 10.0 > 0.0) ObjectClass += 2;
+            if (y <= 0.0) y -= 0.2;
+            if (y <= -1.0) y = -1.0;
+
+            ObjectClass = x * y > 0.0 ? 1 : -1;
+
+            Data = new[] {x, y};
         }
     }
 
@@ -40,49 +45,64 @@ namespace Test
     public class Tests
     {
         [Test]
-        public void Test1()
+        public void Test1([Values(100, 200, 500)] int populationSize,
+            [Values(10, 50, 250, 1000)] int iterations,
+            [Values(30)] int dataSize)
         {
             var neuralNetwork = new NeuralNetwork.NeuralNetwork();
-            var activationFunction = new SigmoidFunction(1);
+            var activationFunction = new ReLUFunction();
 
             neuralNetwork.ActivationFunction = activationFunction;
             neuralNetwork.AddLayer(new Layer(2, 2));
-            neuralNetwork.AddLayer(new Layer(4, 2));
+            neuralNetwork.AddLayer(new Layer(8, 2));
+            neuralNetwork.AddLayer(new Layer(1, 8));
 
-            var genetic = new GeneticAlgorithm.GeneticAlgorithm(1000, neuralNetwork.GetConnectionCount())
+            var genetic = new GeneticAlgorithm.GeneticAlgorithm(populationSize, neuralNetwork.GetConnectionCount())
             {
-                Selection = new TournamentSelection(1000, 10),
-                Crossover = new OnePointCrossover(0.65),
-                Mutation = new FlipBitMutation(0.05)
+                Selection = new TournamentSelection(populationSize, populationSize / 10),
+                Crossover = new OnePointCrossover(0.75, populationSize),
+                Mutation = new FlipBitMutation(0.1)
             };
 
             var data = new List<SampleData>();
-            for (var i = 0; i < 100; i++) data.Add(new SampleData());
+            for (var i = 0; i < dataSize; i++) data.Add(new SampleData());
 
-            for (var it = 0; it < 30; it++)
+            for (var it = 0; it < iterations; it++)
             {
-                for (var i = 0; i < 1000; i++)
+                foreach (var chromosome in genetic.Population)
                 {
-                    neuralNetwork.SetWeights(genetic.Population[i]);
+                    neuralNetwork.SetWeights(chromosome);
 
                     data.ForEach(sampleData =>
                     {
-                        var res = neuralNetwork.GetResult(new[] {sampleData.X, sampleData.Y});
-                        var c = res.IndexOf(res.Max()) + 1;
+                        var res = neuralNetwork.GetResult(sampleData.Data);
 
-                        genetic.Population[i].Fitness += c == sampleData.ObjectClass ? 1.0 : 0.0;
+                        chromosome.Fitness += Math.Abs(res[0] - sampleData.ObjectClass) < 0.3 ? 1 : -1;
                     });
                 }
 
-                if (it != 29)
+                if (it < iterations - 1)
                 {
                     genetic.NextGeneration();
                 }
             }
 
             var best = genetic.Population.MaxBy(chromosome => chromosome.Fitness).First();
+            neuralNetwork.SetWeights(best);
 
-            Console.WriteLine(best.Fitness + "/100");
+            var correct = data.Count(d => Math.Abs(neuralNetwork.GetResult(d.Data)[0] - d.ObjectClass) < 0.3);
+
+            Console.WriteLine(
+                $"Population: {populationSize}, iterations: {iterations} - fitness: {best.Fitness:0.0}/{dataSize} " +
+                $"| correctly recognized: {correct}");
+
+            data.ForEach(d =>
+            {
+                var results = neuralNetwork.GetResult(d.Data)[0];
+                Console.WriteLine($"[{d.Data[0]: 0.00;-0.00} {d.Data[1]: 0.00;-0.00}] - class: {d.ObjectClass: 0;-0} " +
+                                  $"| recognized: {results: 0.00;-0.00} " +
+                                  $"| is correct: {Math.Abs(results - d.ObjectClass) < 0.3}");
+            });
         }
     }
 }

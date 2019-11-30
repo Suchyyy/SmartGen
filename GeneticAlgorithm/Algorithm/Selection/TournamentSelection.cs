@@ -26,11 +26,13 @@ namespace GeneticAlgorithm.Algorithm.Selection
 
                 NewPopulation[i] = tournament.MaxBy(ch => ch.Fitness).First();
             }
-            
+
             for (var i = 0; i < NewPopulation.Count; i++)
             {
-                Population[i] = (Chromosome) NewPopulation[i].Clone();
-                Population[i].Fitness = 0;
+                var ch = NewPopulation[i].Clone();
+                ch.Fitness = 0;
+
+                Population[i] = ch;
             }
         }
     }

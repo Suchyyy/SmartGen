@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using GeneticAlgorithm.Utils;
 
 namespace GeneticAlgorithm.Algorithm.Model
 {
-    public class Chromosome : ICloneable
+    public class Chromosome
     {
         public BitVector32[] Genome { get; }
         public double Fitness { get; set; }
@@ -25,6 +24,12 @@ namespace GeneticAlgorithm.Algorithm.Model
                 .ToList();
         }
 
-        public object Clone() => MemberwiseClone();
+        public Chromosome Clone()
+        {
+            var c = new Chromosome(Genome.Length) {Fitness = Fitness};
+            for (var i = 0; i < Genome.Length; i++) c.Genome[i] = new BitVector32(Genome[i]);
+
+            return c;
+        }
     }
 }

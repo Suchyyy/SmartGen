@@ -28,7 +28,7 @@ namespace NeuralNetwork
                 Layers[i].CalculateOutputs(Layers[i - 1].Outputs, ActivationFunction);
             }
 
-            return Layers.Last().Outputs;
+            return Layers.Last().Outputs.ToList();
         }
 
         public int GetConnectionCount()
