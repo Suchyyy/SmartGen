@@ -23,16 +23,16 @@ namespace Test
             var x = ThreadSafeRandom.NextDouble() * 2.0 - 1.0;
             var y = ThreadSafeRandom.NextDouble() * 2.0 - 1.0;
 
-            if (x >= 0.0) x += 0.2;
+            if (x >= 0.0) x += 0.3;
             if (x >= 1.0) x = 1.0;
 
-            if (y >= 0.0) y += 0.2;
+            if (y >= 0.0) y += 0.3;
             if (y >= 1.0) y = 1.0;
 
-            if (x <= 0.0) x -= 0.2;
+            if (x <= 0.0) x -= 0.3;
             if (x <= -1.0) x = -1.0;
 
-            if (y <= 0.0) y -= 0.2;
+            if (y <= 0.0) y -= 0.3;
             if (y <= -1.0) y = -1.0;
 
             ObjectClass = x * y > 0.0 ? 1 : -1;
@@ -45,23 +45,23 @@ namespace Test
     public class Tests
     {
         [Test]
-        public void Test1([Values(100, 200, 500)] int populationSize,
+        public void Test1([Values(100, 200)] int populationSize,
             [Values(10, 50, 250, 1000)] int iterations,
             [Values(30)] int dataSize)
         {
             var neuralNetwork = new NeuralNetwork.NeuralNetwork();
-            var activationFunction = new ReLUFunction();
+            var activationFunction = new TanHFunction();
 
             neuralNetwork.ActivationFunction = activationFunction;
             neuralNetwork.AddLayer(new Layer(2, 2));
-            neuralNetwork.AddLayer(new Layer(8, 2));
-            neuralNetwork.AddLayer(new Layer(1, 8));
+            neuralNetwork.AddLayer(new Layer(4, 2));
+            neuralNetwork.AddLayer(new Layer(1, 4));
 
             var genetic = new GeneticAlgorithm.GeneticAlgorithm(populationSize, neuralNetwork.GetConnectionCount())
             {
                 Selection = new TournamentSelection(populationSize, populationSize / 10),
-                Crossover = new OnePointCrossover(0.75, populationSize),
-                Mutation = new FlipBitMutation(0.1)
+                Crossover = new TwoPointCrossover(0.65, populationSize),
+                Mutation = new FlipBitMutation(0.05)
             };
 
             var data = new List<SampleData>();
@@ -76,8 +76,11 @@ namespace Test
                     data.ForEach(sampleData =>
                     {
                         var res = neuralNetwork.GetResult(sampleData.Data);
+                        var fit = 0.3 / Math.Abs(res[0] - sampleData.ObjectClass);
 
-                        chromosome.Fitness += Math.Abs(res[0] - sampleData.ObjectClass) < 0.3 ? 1 : -1;
+                        if (fit > 1.0) fit = 1.0;
+
+                        chromosome.Fitness += fit;
                     });
                 }
 

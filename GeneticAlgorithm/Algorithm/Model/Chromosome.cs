@@ -15,13 +15,13 @@ namespace GeneticAlgorithm.Algorithm.Model
             Fitness = 0;
             Genome = new BitVector32[length];
 
-            for (var i = 0; i < length; i++) Genome[i] = new BitVector32(ThreadSafeRandom.NextInt(-1, 1));
+            for (var i = 0; i < length; i++)
+                Genome[i] = new BitVector32(ThreadSafeRandom.NextInt(int.MinValue, int.MaxValue));
         }
 
         public IList<double> GetWeights()
         {
-            return Genome.Select(v => (v.Data - int.MinValue) / ((double) int.MaxValue - (double) int.MinValue))
-                .ToList();
+            return Genome.Select(v => v.Data / (double) int.MaxValue).ToList();
         }
 
         public Chromosome Clone()
