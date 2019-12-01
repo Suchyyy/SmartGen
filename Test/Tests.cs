@@ -53,7 +53,6 @@ namespace Test
             var activationFunction = new TanHFunction();
 
             neuralNetwork.ActivationFunction = activationFunction;
-            neuralNetwork.AddLayer(new Layer(2, 2));
             neuralNetwork.AddLayer(new Layer(4, 2));
             neuralNetwork.AddLayer(new Layer(1, 4));
 
