@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using GeneticAlgorithm.Algorithm.Model;
 using NeuralNetwork.ActivationFunction;
+using NeuralNetwork.Utils;
 
 namespace NeuralNetwork
 {
@@ -21,24 +20,26 @@ namespace NeuralNetwork
 
         public IList<double> GetResult(IEnumerable<double> inputs)
         {
-            Layers[0].CalculateOutputs(inputs, ActivationFunction);
+            var previousLayerResult = Layers[0].GetOutputs(inputs, ActivationFunction);
 
             for (var i = 1; i < Layers.Count; i++)
             {
-                Layers[i].CalculateOutputs(Layers[i - 1].Outputs, ActivationFunction);
+                previousLayerResult = Layers[i].GetOutputs(previousLayerResult, ActivationFunction);
             }
 
-            return Layers.Last().Outputs.ToList();
+            return previousLayerResult;
         }
 
         public int GetConnectionCount()
         {
-            return (int) Layers.Sum(layer => Math.Pow(layer.Neurons.Count, 2));
+            return Layers.AsParallel().Sum(layer => layer.Neurons.Sum(neuron => neuron.Weights.Count));
         }
 
-        public void SetWeights(Chromosome chromosome)
+        public void SetWeights(IEnumerable<int> genome, double minWeight, double maxWeight)
         {
-            var weights = chromosome.GetWeights();
+            var weights = genome
+                .Select(v => MathUtils.GetInNewRange(v, int.MinValue, int.MaxValue, minWeight, maxWeight))
+                .ToList();
 
             var index = 0;
             foreach (var layer in Layers)

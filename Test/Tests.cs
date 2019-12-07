@@ -70,7 +70,7 @@ namespace Test
             {
                 foreach (var chromosome in genetic.Population)
                 {
-                    neuralNetwork.SetWeights(chromosome);
+                    neuralNetwork.SetWeights(chromosome.Genome, -5, 5);
 
                     data.ForEach(sampleData =>
                     {
@@ -79,7 +79,10 @@ namespace Test
 
                         if (fit > 1.0) fit = 1.0;
 
-                        chromosome.Fitness += fit;
+                        lock (genetic)
+                        {
+                            chromosome.Fitness += fit;
+                        }
                     });
                 }
 
@@ -90,7 +93,7 @@ namespace Test
             }
 
             var best = genetic.Population.MaxBy(chromosome => chromosome.Fitness).First();
-            neuralNetwork.SetWeights(best);
+            neuralNetwork.SetWeights(best.Genome, -5, 5);
 
             var correct = data.Count(d => Math.Abs(neuralNetwork.GetResult(d.Data)[0] - d.ObjectClass) < 0.3);
 

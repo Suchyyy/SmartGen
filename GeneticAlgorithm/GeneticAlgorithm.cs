@@ -45,9 +45,9 @@ namespace GeneticAlgorithm
 
         public GeneticAlgorithm(int populationSize, int genomeSize)
         {
-            Population= new List<Chromosome>();
-            
-            for(var i=0;i<populationSize;i++) Population.Add(new Chromosome(populationSize));
+            Population = new List<Chromosome>();
+
+            for (var i = 0; i < populationSize; i++) Population.Add(new Chromosome(populationSize));
         }
 
         public void NextGeneration()

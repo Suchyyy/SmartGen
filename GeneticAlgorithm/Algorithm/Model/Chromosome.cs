@@ -1,35 +1,36 @@
-﻿using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
+﻿using System;
 using GeneticAlgorithm.Utils;
 
 namespace GeneticAlgorithm.Algorithm.Model
 {
     public class Chromosome
     {
-        public BitVector32[] Genome { get; }
+        public int[] Genome { get; }
+        private readonly int _length;
         public double Fitness { get; set; }
 
         public Chromosome(int length)
         {
             Fitness = 0;
-            Genome = new BitVector32[length];
+            _length = length;
+            Genome = new int[_length];
 
-            for (var i = 0; i < length; i++)
-                Genome[i] = new BitVector32(ThreadSafeRandom.NextInt(int.MinValue, int.MaxValue));
+            for (var i = 0; i < _length; i++)
+                Genome[i] = ThreadSafeRandom.NextInt(int.MinValue, int.MaxValue);
         }
 
-        public IList<double> GetWeights()
+        private Chromosome(int length, int[] genome)
         {
-            return Genome.Select(v => v.Data / (double) int.MaxValue).ToList();
+            Fitness = 0;
+            _length = length;
+            Genome = new int[genome.Length];
+
+            Buffer.BlockCopy(genome, 0, Genome, 0, length * sizeof(int));
         }
 
         public Chromosome Clone()
         {
-            var c = new Chromosome(Genome.Length) {Fitness = Fitness};
-            for (var i = 0; i < Genome.Length; i++) c.Genome[i] = new BitVector32(Genome[i]);
-
-            return c;
+            return new Chromosome(_length, Genome);
         }
     }
 }

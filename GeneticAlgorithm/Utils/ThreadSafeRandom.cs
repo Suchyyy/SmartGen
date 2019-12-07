@@ -4,30 +4,58 @@ namespace GeneticAlgorithm.Utils
 {
     public static class ThreadSafeRandom
     {
-        private static readonly Random Random = new Random(DateTime.Now.Millisecond);
+        private static readonly Random Global = new Random(DateTime.Now.Millisecond);
+        [ThreadStatic] private static Random _local;
 
         public static double NextDouble()
         {
-            lock (Random)
+            if (_local == null)
             {
-                return Random.NextDouble();
+                lock (Global)
+                {
+                    if (_local == null)
+                    {
+                        var seed = Global.Next();
+                        _local = new Random(seed);
+                    }
+                }
             }
+
+            return _local.NextDouble();
         }
 
         public static int NextInt(int min, int max)
         {
-            lock (Random)
+            if (_local == null)
             {
-                return Random.Next(min, max);
+                lock (Global)
+                {
+                    if (_local == null)
+                    {
+                        var seed = Global.Next();
+                        _local = new Random(seed);
+                    }
+                }
             }
+
+            return _local.Next(min, max);
         }
 
         public static int NextInt(int max)
         {
-            lock (Random)
+            if (_local == null)
             {
-                return Random.Next(max);
+                lock (Global)
+                {
+                    if (_local == null)
+                    {
+                        var seed = Global.Next();
+                        _local = new Random(seed);
+                    }
+                }
             }
+
+            return _local.Next(max);
         }
     }
 }

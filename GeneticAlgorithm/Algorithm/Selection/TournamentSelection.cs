@@ -1,4 +1,5 @@
-﻿using GeneticAlgorithm.Algorithm.Model;
+﻿using System.Threading.Tasks;
+using GeneticAlgorithm.Algorithm.Model;
 using GeneticAlgorithm.Utils;
 using MoreLinq;
 
@@ -15,25 +16,19 @@ namespace GeneticAlgorithm.Algorithm.Selection
 
         public override void SelectPopulation()
         {
-            var tournament = new Chromosome[_tournamentSize];
-
-            for (var i = 0; i < Population.Count; i++)
+            Parallel.For(0, Population.Count, i =>
             {
+                var tournament = new Chromosome[_tournamentSize];
+
                 for (var j = 0; j < _tournamentSize; j++)
                 {
                     tournament[j] = Population[ThreadSafeRandom.NextInt(Population.Count)];
                 }
 
                 NewPopulation[i] = tournament.MaxBy(ch => ch.Fitness).First();
-            }
+            });
 
-            for (var i = 0; i < NewPopulation.Count; i++)
-            {
-                var ch = NewPopulation[i].Clone();
-                ch.Fitness = 0;
-
-                Population[i] = ch;
-            }
+            Parallel.For(0, NewPopulation.Count, i => Population[i] = NewPopulation[i].Clone());
         }
     }
 }
