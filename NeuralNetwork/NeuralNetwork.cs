@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NeuralNetwork.ActivationFunction;
 using NeuralNetwork.Utils;
@@ -18,7 +19,7 @@ namespace NeuralNetwork
 
         public void AddLayer(Layer layer) => Layers.Add(layer);
 
-        public IList<double> GetResult(IEnumerable<double> inputs)
+        public IList<double> GetResult(IList<double> inputs)
         {
             var previousLayerResult = Layers[0].GetOutputs(inputs, ActivationFunction);
 
@@ -32,25 +33,23 @@ namespace NeuralNetwork
 
         public int GetConnectionCount()
         {
-            return Layers.AsParallel().Sum(layer => layer.Neurons.Sum(neuron => neuron.Weights.Count));
+            return Layers.Sum(layer => layer.InputSize * layer.OutputSize);
         }
 
         public void SetWeights(IEnumerable<int> genome, double minWeight, double maxWeight)
         {
             var weights = genome
                 .Select(v => MathUtils.GetInNewRange(v, int.MinValue, int.MaxValue, minWeight, maxWeight))
-                .ToList();
+                .ToArray();
 
-            var index = 0;
+            var offset = 0;
             foreach (var layer in Layers)
             {
-                foreach (var neuron in layer.Neurons)
-                {
-                    for (var i = 0; i < neuron.Weights.Count; i++)
-                    {
-                        neuron.Weights[i] = weights[index++];
-                    }
-                }
+                var size = layer.InputSize * layer.OutputSize * sizeof(int);
+
+                Buffer.BlockCopy(weights, offset, layer.WeightMatrix, 0, size);
+
+                offset += size;
             }
         }
     }
