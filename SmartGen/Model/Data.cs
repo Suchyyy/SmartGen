@@ -30,7 +30,7 @@ namespace SmartGen.Model
                 colWeights.Add(i, correlation.Sum(row => row[i]));
             }
 
-            colWeights = colWeights.OrderByDescending(pair => pair.Value).ToDictionary();
+            colWeights = colWeights.OrderByDescending(pair => Math.Abs(pair.Value)).ToDictionary();
 
             foreach (var attribute in Attributes)
             {

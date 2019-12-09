@@ -49,7 +49,7 @@ namespace Test
                 {
                     neuralNetwork.SetWeights(chromosome.Genome, -5, 5);
 
-                    Parallel.For(0, 100, i =>
+                    Parallel.For(0, 300, i =>
                     {
                         var res = neuralNetwork.GetResult(data.Attributes[i]);
                         lock (chromosome)
