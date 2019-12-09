@@ -25,7 +25,7 @@ namespace GeneticAlgorithm.Algorithm.Selection
                     tournament[j] = Population[ThreadSafeRandom.NextInt(Population.Count)];
                 }
 
-                NewPopulation[i] = tournament.MaxBy(ch => ch.Fitness).First();
+                NewPopulation[i] = tournament.MinBy(ch => ch.Fitness).First();
             });
 
             Parallel.For(0, NewPopulation.Count, i => Population[i] = NewPopulation[i].Clone());

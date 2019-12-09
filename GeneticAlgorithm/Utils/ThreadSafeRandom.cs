@@ -41,7 +41,7 @@ namespace GeneticAlgorithm.Utils
             return _local.Next(min, max);
         }
 
-        public static int NextInt(int max)
+        public static short NextShort(short min, short max)
         {
             if (_local == null)
             {
@@ -55,7 +55,11 @@ namespace GeneticAlgorithm.Utils
                 }
             }
 
-            return _local.Next(max);
+            return (short) _local.Next(min, max);
         }
+
+        public static int NextInt(int max) => NextInt(0, max);
+
+        public static int NextShort(short max) => NextShort(0, max);
     }
 }

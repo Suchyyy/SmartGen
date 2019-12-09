@@ -5,7 +5,7 @@ namespace GeneticAlgorithm.Algorithm.Model
 {
     public class Chromosome
     {
-        public int[] Genome { get; }
+        public short[] Genome { get; }
         private readonly int _length;
         public double Fitness { get; set; }
 
@@ -13,19 +13,24 @@ namespace GeneticAlgorithm.Algorithm.Model
         {
             Fitness = 0;
             _length = length;
-            Genome = new int[_length];
+            Genome = new short[_length];
 
             for (var i = 0; i < _length; i++)
-                Genome[i] = ThreadSafeRandom.NextInt(int.MinValue, int.MaxValue);
+                Genome[i] = ThreadSafeRandom.NextShort(short.MinValue, short.MaxValue);
         }
 
-        private Chromosome(int length, int[] genome)
+        private Chromosome(int length, short[] genome)
         {
             Fitness = 0;
             _length = length;
-            Genome = new int[genome.Length];
+            Genome = new short[genome.Length];
 
-            Buffer.BlockCopy(genome, 0, Genome, 0, length * sizeof(int));
+            Buffer.BlockCopy(genome, 0, Genome, 0, length * sizeof(short));
+        }
+
+        public int GenomeLength()
+        {
+            return sizeof(short) * 8 * Genome.Length;
         }
 
         public Chromosome Clone()

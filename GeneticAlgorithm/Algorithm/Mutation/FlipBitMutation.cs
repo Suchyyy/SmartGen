@@ -11,9 +11,9 @@ namespace GeneticAlgorithm.Algorithm.Mutation
 
         protected override void Mutate(Chromosome chromosome)
         {
-            var index = ThreadSafeRandom.NextInt(chromosome.Genome.Length * 32);
+            var index = ThreadSafeRandom.NextInt(chromosome.GenomeLength());
 
-            chromosome.Genome[index / 32] ^= 1 << (index % 32);
+            chromosome.Genome[index / 16] ^= (short) (1 << (index % 16));
         }
     }
 }

@@ -16,13 +16,11 @@ namespace GeneticAlgorithm.Algorithm.Crossover
             var child2 = parent2.Clone();
 
             NewPopulation[index] = child1;
-
-            if (index + 1 < NewPopulation.Count)
-                NewPopulation[index + 1] = child2;
+            if (index + 1 < NewPopulation.Count) NewPopulation[index + 1] = child2;
 
             if (ThreadSafeRandom.NextDouble() > CrossoverProbability) return;
 
-            var genomeLength = parent1.Genome.Length * 32;
+            var genomeLength = parent1.GenomeLength();
 
             var start = 0;
             var end = ThreadSafeRandom.NextInt(genomeLength);
@@ -36,21 +34,21 @@ namespace GeneticAlgorithm.Algorithm.Crossover
 
             for (var i = start; i < end; i++)
             {
-                var gen = i / 32;
-                var bit = i - gen * 32;
+                var gen = i / 16;
+                var bit = i - gen * 16;
 
-                if (bit == 0 && end / 32 != gen)
+                if (bit == 0 && end / 16 != gen)
                 {
                     var genome = child1.Genome[gen];
                     child1.Genome[gen] = child2.Genome[gen];
                     child2.Genome[gen] = genome;
 
-                    i += 31;
+                    i += 15;
                 }
                 else if (((child1.Genome[gen] >> bit & 1) ^ (child2.Genome[gen] >> bit & 1)) == 1)
                 {
-                    child1.Genome[gen] ^= 1 << bit;
-                    child2.Genome[gen] ^= 1 << bit;
+                    child1.Genome[gen] ^= (short) (1 << bit);
+                    child2.Genome[gen] ^= (short) (1 << bit);
                 }
             }
         }

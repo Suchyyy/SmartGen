@@ -36,16 +36,17 @@ namespace NeuralNetwork
             return Layers.Sum(layer => layer.InputSize * layer.OutputSize);
         }
 
-        public void SetWeights(IEnumerable<int> genome, double minWeight, double maxWeight)
+        public void SetWeights(IEnumerable<short> genome, double minWeight, double maxWeight)
         {
             var weights = genome
-                .Select(v => MathUtils.GetInNewRange(v, int.MinValue, int.MaxValue, minWeight, maxWeight))
+                .Select(v => MathUtils.GetInNewRange(v, short.MinValue, short.MaxValue, minWeight, maxWeight))
                 .ToArray();
 
             var offset = 0;
+
             foreach (var layer in Layers)
             {
-                var size = layer.InputSize * layer.OutputSize * sizeof(int);
+                var size = layer.InputSize * layer.OutputSize * sizeof(double);
 
                 Buffer.BlockCopy(weights, offset, layer.WeightMatrix, 0, size);
 
