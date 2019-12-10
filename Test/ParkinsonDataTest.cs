@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,10 +23,10 @@ namespace Test
             var testDir = Path.GetDirectoryName(Path.GetDirectoryName(TestContext.CurrentContext.TestDirectory));
             var dataPath = Path.Combine(testDir ?? throw new NullReferenceException(), "..", "Data", "data.csv");
 
-            var data = CsvMapper.ReadDataFromFile(dataPath, new[] {','}, new[] {754}, CultureInfo.InvariantCulture);
+            var data = CsvMapper.ReadDataFromFile(dataPath, new[] {','}, 1, '.');
             var correlation = Correlation.GetCorrelation(data);
             data = data.RemoveLeastRelevantColumn(correlation, columns);
-            
+
             var neuralNetwork = new NeuralNetwork.NeuralNetwork();
             var activationFunction = new SigmoidFunction(-1);
 
@@ -90,7 +89,7 @@ namespace Test
             var testDir = Path.GetDirectoryName(Path.GetDirectoryName(TestContext.CurrentContext.TestDirectory));
             var dataPath = Path.Combine(testDir ?? throw new NullReferenceException(), "..", "Data", "data.csv");
 
-            var data = CsvMapper.ReadDataFromFile(dataPath, new[] {','}, new[] {754}, CultureInfo.InvariantCulture);
+            var data = CsvMapper.ReadDataFromFile(dataPath, new[] {','}, 1, '.');
 
             var neuralNetwork = new NeuralNetwork.NeuralNetwork();
             var activationFunction = new SigmoidFunction(-1);

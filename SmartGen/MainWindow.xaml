@@ -4,7 +4,247 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartGen"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid />
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextRenderingMode="Auto"
+        TextOptions.TextFormattingMode="Ideal"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        Height="600" Width="1024" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" WindowStyle="None"
+        d:DataContext="{local:MainWindow}">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.ColumnSpan="2" Background="#FF3F51B5" MouseDown="TitleBar_OnMouseDown">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="MinimizeButton" Style="{StaticResource MaterialDesignFloatingActionAccentButton}"
+                        Width="25" Height="25" Background="{x:Null}" Foreground="White" BorderBrush="{x:Null}"
+                        Click="MinimizeButton_OnClick" Margin="10, 0">
+                    <materialDesign:PackIcon Kind="WindowMinimize" Width="25" Height="25" />
+                </Button>
+                <Button x:Name="ButtonClose" Style="{StaticResource MaterialDesignFloatingActionAccentButton}"
+                        Width="25" Height="25" Background="{x:Null}" Foreground="White" BorderBrush="{x:Null}"
+                        Click="ButtonClose_OnClick" Margin="10, 0">
+                    <materialDesign:PackIcon Kind="Close" Width="25" Height="25" />
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="0">
+            <Grid.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF9B9B9B" Offset="1" />
+                    <GradientStop Color="#FFEFEFEF" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="100" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Background="#FF3F51B5">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <materialDesign:PackIcon Kind="Molecule" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                             Foreground="#DDFFFFFF" FontSize="24" Height="30" Width="30"
+                                             Margin="0,0,10,3" />
+                    <TextBlock Text="SmartGen" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="#DDFFFFFF" FontWeight="Bold" FontSize="28" />
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Grid.Row="1">
+                <Button x:Name="ButtonTraining" Margin="10" Click="ButtonTraining_Click">
+                    <Grid Width="150">
+                        <materialDesign:PackIcon Kind="AlignVerticalBottom" />
+                        <TextBlock HorizontalAlignment="Center" Text="Training" FontWeight="Bold" />
+                    </Grid>
+                    <Button.Style>
+                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedIndex, ElementName=TabControl}" Value="0">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="Foreground" Value="#FF3F51B5" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button x:Name="ButtonDataSet" Margin="10" Click="ButtonDataSet_Click">
+                    <Grid Width="150">
+                        <materialDesign:PackIcon Kind="Database" />
+                        <TextBlock HorizontalAlignment="Center" Text="Data set" />
+                    </Grid>
+                    <Button.Style>
+                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedIndex, ElementName=TabControl}" Value="1">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="Foreground" Value="#FF3F51B5" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button x:Name="ButtonNeuralNetwork" Margin="10" Click="ButtonNeuralNetwork_Click">
+                    <Grid Width="150">
+                        <materialDesign:PackIcon Kind="Graph" />
+                        <TextBlock HorizontalAlignment="Center" Text="Neural network" />
+                    </Grid>
+                    <Button.Style>
+                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedIndex, ElementName=TabControl}" Value="2">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="Foreground" Value="#FF3F51B5" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button x:Name="ButtonGeneticAlgorithm" Margin="10" Click="ButtonGeneticAlgorithm_Click">
+                    <Grid Width="150">
+                        <materialDesign:PackIcon Kind="Dna" />
+                        <TextBlock HorizontalAlignment="Center" Text=" Genetic Algorithm" />
+                    </Grid>
+                    <Button.Style>
+                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedIndex, ElementName=TabControl}" Value="3">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="Foreground" Value="#FF3F51B5" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="1" Background="#FFCDCDCD">
+            <TabControl Name="TabControl" Background="{x:Null}" BorderBrush="{x:Null}">
+                <TabItem Name="TabTraining" Visibility="Collapsed" />
+                <TabItem Name="TabDataSet" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="140" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="60" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Button Margin="10" Click="ButtonLoadData_Click">
+                            <Grid Width="150">
+                                <materialDesign:PackIcon Kind="File" />
+                                <TextBlock HorizontalAlignment="Center" Text="Open file" />
+                            </Grid>
+                            <Button.Style>
+                                <Style TargetType="{x:Type Button}"
+                                       BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                                    <Setter Property="IsEnabled" Value="True" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Text, ElementName=TextBoxLineSkip}" Value="">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Text, ElementName=TextBoxColumnSeparator}"
+                                                     Value="">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Text, ElementName=TextBoxClassCount}"
+                                                     Value="">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+
+                        <Grid Grid.Row="0" Grid.Column="1" Margin="10" Width="90" HorizontalAlignment="Left">
+                            <TextBlock Text="Lines to skip" IsHitTestVisible="False" VerticalAlignment="Center"
+                                       HorizontalAlignment="Left" Foreground="#FF444444" FontSize="14">
+                                <TextBlock.Style>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Text, ElementName=TextBoxLineSkip}" Value="">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBox x:Name="TextBoxLineSkip" MaxLength="5" FontSize="14" VerticalAlignment="Center"
+                                     PreviewTextInput="TextBoxNumberFilter_KeyPress" />
+                        </Grid>
+
+                        <Grid Grid.Row="0" Grid.Column="2" Margin="10" Width="90" HorizontalAlignment="Left">
+                            <TextBlock Text="Separator" IsHitTestVisible="False" VerticalAlignment="Center"
+                                       HorizontalAlignment="Left" Foreground="#FF444444" FontSize="14">
+                                <TextBlock.Style>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Text, ElementName=TextBoxColumnSeparator}"
+                                                         Value="">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBox x:Name="TextBoxColumnSeparator" MaxLength="1" FontSize="14"
+                                     VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Grid Grid.Row="0" Grid.Column="3" Margin="10" Width="120" HorizontalAlignment="Left">
+                            <TextBlock Text="Number of classes" IsHitTestVisible="False" VerticalAlignment="Center"
+                                       HorizontalAlignment="Left" Foreground="#FF444444" FontSize="14">
+                                <TextBlock.Style>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Text, ElementName=TextBoxClassCount}"
+                                                         Value="">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBox x:Name="TextBoxClassCount" MaxLength="3" FontSize="14"
+                                     VerticalAlignment="Center" PreviewTextInput="TextBoxNumberFilter_KeyPress" />
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="4" Margin="10"
+                                    HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <TextBlock Text="Dot as decimal separator" FontSize="14" Margin="0, 0, 10, 0" />
+                            <CheckBox x:Name="CheckBoxDecimalSeparator" IsChecked="true"
+                                      Style="{StaticResource MaterialDesignSwitchToggleButton}" />
+                        </StackPanel>
+
+                        <DataGrid x:Name="GridDataSet" Grid.Row="1" Grid.ColumnSpan="5" Grid.Column="0" Margin="10"
+                                  AutoGenerateColumns="False" local:DataGridHelper.TableData="{Binding DataSet}"
+                                  EnableColumnVirtualization="True" EnableRowVirtualization="True"
+                                  VirtualizingPanel.VirtualizationMode="Recycling" />
+                    </Grid>
+                </TabItem>
+                <TabItem Name="TabNeuralNetwork" Visibility="Collapsed" />
+                <TabItem Name="TabGeneticAlgorithm" Visibility="Collapsed" />
+            </TabControl>
+        </Grid>
+    </Grid>
 </Window>

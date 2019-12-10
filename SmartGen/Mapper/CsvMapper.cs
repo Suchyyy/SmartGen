@@ -10,11 +10,11 @@ namespace SmartGen.Mapper
     public static class CsvMapper
     {
         // ReSharper disable once ReturnTypeCanBeEnumerable.Global
-        public static Data ReadDataFromFile(string path, char[] separator, IEnumerable<int> classIndexes,
-            CultureInfo cultureInfo, int skipRow = 2, bool normalized = true)
+        public static Data ReadDataFromFile(string path, char[] separator, int classCount,
+            char decimalSeparator, int skipRow = 2, bool normalized = true)
         {
             var data = new Data();
-            var sortedIndexes = classIndexes.OrderByDescending(v => v).ToArray();
+            var format = new NumberFormatInfo {NumberDecimalSeparator = decimalSeparator.ToString()};
 
             using (var file = new StreamReader(path))
             {
@@ -26,15 +26,15 @@ namespace SmartGen.Mapper
                     var parts = line.Split(separator);
 
                     if (parts.Length == 0) continue;
-
-                    var row = parts.Select(part => Convert.ToDouble(part.Trim(), cultureInfo)).ToList();
+                    
+                    var row = parts.Select(part => Convert.ToDouble(part.Trim(), format)).ToList();
 
                     data.ObjectClass.Add(new List<double>());
 
-                    foreach (var index in sortedIndexes)
+                    for (var j = 0; j < classCount; j++)
                     {
-                        data.ObjectClass[i].Add(row[index]);
-                        row.RemoveAt(index);
+                        data.ObjectClass[i].Add(row.Last());
+                        row.RemoveAt(row.Count - 1);
                     }
 
                     data.Attributes.Add(row);
