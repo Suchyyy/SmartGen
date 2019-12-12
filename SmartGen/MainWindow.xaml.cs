@@ -2,7 +2,6 @@
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
-using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using SmartGen.Mapper;
 using SmartGen.Model;
