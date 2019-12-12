@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
+using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using SmartGen.Mapper;
 using SmartGen.Model;
@@ -64,9 +65,9 @@ namespace SmartGen
             var filename = openFileDialog.FileName;
             var data = CsvMapper.ReadDataFromFile(filename,
                 TextBoxColumnSeparator.Text.ToCharArray(),
-                Convert.ToInt32(TextBoxClassCount.Text),
+                Convert.ToInt32(UpDownClassCount.Value),
                 CheckBoxDecimalSeparator.IsChecked != null && CheckBoxDecimalSeparator.IsChecked.Value ? '.' : ',',
-                Convert.ToInt32(TextBoxLineSkip.Text));
+                Convert.ToInt32(UpDownLineSkip.Value));
 
             DataSet = new TableData(data);
 
