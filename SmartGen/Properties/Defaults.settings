@@ -1,0 +1,57 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SmartGen.Properties" GeneratedClassName="Defaults">
+  <Profiles />
+  <Settings>
+    <Setting Name="Crossover" Type="SmartGen.Types.CrossoverType" Scope="User">
+      <Value Profile="(Default)">TwoPoint</Value>
+    </Setting>
+    <Setting Name="CrossoverProbability" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">0.65</Value>
+    </Setting>
+    <Setting Name="Mutation" Type="SmartGen.Types.MutationType" Scope="User">
+      <Value Profile="(Default)">FlipBit</Value>
+    </Setting>
+    <Setting Name="MutationProbability" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">0.05</Value>
+    </Setting>
+    <Setting Name="Selection" Type="SmartGen.Types.SelectionType" Scope="User">
+      <Value Profile="(Default)">Tournament</Value>
+    </Setting>
+    <Setting Name="SelectionSize" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="MaxGenerationCount" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">50</Value>
+    </Setting>
+    <Setting Name="PopulationSize" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
+    <Setting Name="ErrorTolerance" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">15</Value>
+    </Setting>
+    <Setting Name="InputLayerSize" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">4</Value>
+    </Setting>
+    <Setting Name="OutputLayerSize" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="MinWeight" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">-5</Value>
+    </Setting>
+    <Setting Name="MaxWeight" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
+    <Setting Name="Bias" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="ActivationFunction" Type="SmartGen.Types.ActivationFunctionType" Scope="User">
+      <Value Profile="(Default)">TanH</Value>
+    </Setting>
+    <Setting Name="HiddenLayers" Type="System.Int32[]" Scope="User">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfInt xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;int&gt;4&lt;/int&gt;
+&lt;/ArrayOfInt&gt;</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

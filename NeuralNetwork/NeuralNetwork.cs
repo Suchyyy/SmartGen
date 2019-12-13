@@ -10,6 +10,7 @@ namespace NeuralNetwork
     {
         public IList<Layer> Layers { get; }
         public IActivationFunction ActivationFunction { get; set; }
+        public double Bias { get; set; }
 
         public NeuralNetwork()
         {
@@ -21,11 +22,11 @@ namespace NeuralNetwork
 
         public IList<double> GetResult(IList<double> inputs)
         {
-            var previousLayerResult = Layers[0].GetOutputs(inputs, ActivationFunction);
+            var previousLayerResult = Layers[0].GetOutputs(inputs, ActivationFunction, Bias);
 
             for (var i = 1; i < Layers.Count; i++)
             {
-                previousLayerResult = Layers[i].GetOutputs(previousLayerResult, ActivationFunction);
+                previousLayerResult = Layers[i].GetOutputs(previousLayerResult, ActivationFunction, Bias);
             }
 
             return previousLayerResult;
