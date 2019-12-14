@@ -11,6 +11,8 @@ namespace NeuralNetwork
         public IList<Layer> Layers { get; }
         public IActivationFunction ActivationFunction { get; set; }
         public double Bias { get; set; }
+        public double MinWeight { get; set; }
+        public double MaxWeight { get; set; }
 
         public NeuralNetwork()
         {
@@ -37,10 +39,10 @@ namespace NeuralNetwork
             return Layers.Sum(layer => layer.InputSize * layer.OutputSize);
         }
 
-        public void SetWeights(IEnumerable<short> genome, double minWeight, double maxWeight)
+        public void SetWeights(IEnumerable<short> genome)
         {
             var weights = genome
-                .Select(v => MathUtils.GetInNewRange(v, short.MinValue, short.MaxValue, minWeight, maxWeight))
+                .Select(v => MathUtils.GetInNewRange(v, short.MinValue, short.MaxValue, MinWeight, MaxWeight))
                 .ToArray();
 
             var offset = 0;

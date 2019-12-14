@@ -1,9 +1,15 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using LiveCharts;
+using LiveCharts.Defaults;
 using Microsoft.Win32;
+using NeuralNetwork.ActivationFunction;
 using SmartGen.Mapper;
+using SmartGen.MathUtils;
 using SmartGen.Model;
 using SmartGen.Properties;
 using SmartGen.Types;
@@ -15,20 +21,94 @@ namespace SmartGen
     /// </summary>
     public partial class MainWindow
     {
-        public ObservableCollection<LayerModel> Layers { get; set; }
+        public ChartValues<ObservablePoint> ActivationFunctionChartValues { get; set; }
 
-        private TableData DataSet { get; set; }
+        public ChartValues<ObservablePoint> AlgorithmMinValues { get; set; }
+        public ChartValues<ObservablePoint> AlgorithmMaxValues { get; set; }
+        public ChartValues<ObservablePoint> AlgorithmAvgValues { get; set; }
+
+        public IActivationFunction Function { get; set; }
+
+        public ObservableCollection<LayerModel> Layers { get; set; }
+        public CsvMapper Mapper { get; set; }
+
+        public Data Data { get; set; }
+        private SmartGenAlgorithm _algorithm;
 
         public MainWindow()
         {
+            ActivationFunctionChartValues = new ChartValues<ObservablePoint>();
+            AlgorithmMinValues = new ChartValues<ObservablePoint>();
+            AlgorithmAvgValues = new ChartValues<ObservablePoint>();
+            AlgorithmMaxValues = new ChartValues<ObservablePoint>();
+
+            Function = new TanHFunction();
+
             Layers = new ObservableCollection<LayerModel>();
 
             InitializeComponent();
+            InitializeDataSetSettings();
             InitializeNeuralNetworkSettings();
             InitializeGeneticAlgorithmSettings();
+
+            DataContext = this;
         }
 
         #region Settings
+
+        private void InitializeDataSetSettings()
+        {
+            UpDownLineSkip.Value = Settings.Default.LinesToSkip;
+            UpDownClassCount.Value = Settings.Default.ClassesCount;
+
+            TextBoxColumnSeparator.Text = Settings.Default.ColumnSeparator.ToString();
+
+            CheckBoxDecimalSeparator.IsChecked = Settings.Default.DotAsDecimalSeparator;
+
+            UpDownTrainingSetRatio.Value = Settings.Default.TrainingRatio;
+            UpDownTestSetRatio.Value = Settings.Default.TestRatio;
+            UpDownValidationSetRatio.Value = Settings.Default.ValidationRatio;
+        }
+
+
+        private void ButtonSaveDataSetParams_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (UpDownLineSkip.Value.HasValue)
+                Settings.Default.LinesToSkip = (int) UpDownLineSkip.Value.Value;
+
+            if (UpDownClassCount.Value.HasValue)
+                Settings.Default.ClassesCount = (int) UpDownClassCount.Value.Value;
+
+            Settings.Default.ColumnSeparator = TextBoxColumnSeparator.Text[0];
+
+            if (CheckBoxDecimalSeparator.IsChecked.HasValue)
+                Settings.Default.DotAsDecimalSeparator = CheckBoxDecimalSeparator.IsChecked.Value;
+
+            if (UpDownTrainingSetRatio.Value.HasValue)
+                Settings.Default.TrainingRatio = (int) UpDownTrainingSetRatio.Value.Value;
+
+            if (UpDownTestSetRatio.Value.HasValue)
+                Settings.Default.TestRatio = (int) UpDownTestSetRatio.Value.Value;
+
+            if (UpDownValidationSetRatio.Value.HasValue)
+                Settings.Default.ValidationRatio = (int) UpDownValidationSetRatio.Value.Value;
+
+            Settings.Default.Save();
+        }
+
+        private void ButtonRestoreDataSetParams_OnClick(object sender, RoutedEventArgs e)
+        {
+            UpDownLineSkip.Value = Defaults.Default.LinesToSkip;
+            UpDownClassCount.Value = Defaults.Default.ClassesCount;
+
+            TextBoxColumnSeparator.Text = Defaults.Default.ColumnSeparator.ToString();
+
+            CheckBoxDecimalSeparator.IsChecked = Defaults.Default.DotAsDecimalSeparator;
+
+            UpDownTrainingSetRatio.Value = Defaults.Default.TrainingRatio;
+            UpDownTestSetRatio.Value = Defaults.Default.TestRatio;
+            UpDownValidationSetRatio.Value = Defaults.Default.ValidationRatio;
+        }
 
         private void InitializeNeuralNetworkSettings()
         {
@@ -42,11 +122,13 @@ namespace SmartGen
                 Layers.Add(new LayerModel {LayerNo = i + 1, Size = Settings.Default.HiddenLayers[i]});
             }
 
+
             RangeSliderWeight.LowerValue = Settings.Default.MinWeight;
             RangeSliderWeight.UpperValue = Settings.Default.MaxWeight;
 
             UpDownBias.Value = Settings.Default.Bias;
             ComboBoxActivationFunction.SelectedItem = Settings.Default.ActivationFunction;
+            UpDownT.Value = Settings.Default.T;
         }
 
         private void ButtonSaveNetworkParams_OnClick(object sender, RoutedEventArgs e)
@@ -64,6 +146,9 @@ namespace SmartGen
 
             if (UpDownBias.Value.HasValue)
                 Settings.Default.Bias = UpDownBias.Value.Value;
+
+            if (UpDownT.Value.HasValue)
+                Settings.Default.T = UpDownT.Value.Value;
 
             Settings.Default.ActivationFunction = (ActivationFunctionType) ComboBoxActivationFunction.SelectedItem;
 
@@ -87,6 +172,7 @@ namespace SmartGen
 
             UpDownBias.Value = Defaults.Default.Bias;
             ComboBoxActivationFunction.SelectedItem = Defaults.Default.ActivationFunction;
+            UpDownT.Value = Defaults.Default.T;
         }
 
         private void InitializeGeneticAlgorithmSettings()
@@ -151,6 +237,48 @@ namespace SmartGen
 
         #region Events
 
+        private void ButtonStartAlgorithm_Click(object sender, RoutedEventArgs e)
+        {
+            AlgorithmMinValues.Clear();
+            AlgorithmMaxValues.Clear();
+            AlgorithmAvgValues.Clear();
+
+            var neuralNetwork = SmartGenAlgorithm.CreateNeuralNetwork();
+            var geneticAlgorithm = SmartGenAlgorithm.CreateGeneticAlgorithm(neuralNetwork.GetConnectionCount());
+
+            if (Settings.Default.InputLayerSize < Data.Attributes.First().Count)
+            {
+                var correlation = Correlation.GetCorrelation(Data);
+                Data = Data.RemoveLeastRelevantColumn(correlation, Settings.Default.InputLayerSize);
+            }
+
+            var dataSets = Data.SplitData(Settings.Default.TrainingRatio,
+                Settings.Default.TestRatio,
+                Settings.Default.ValidationRatio);
+
+            _algorithm = new SmartGenAlgorithm(geneticAlgorithm, neuralNetwork)
+            {
+                DataSet = dataSets,
+                ErrorTolerance = Settings.Default.ErrorTolerance,
+                MaxIterations = Settings.Default.MaxGenerationCount
+            };
+
+            _algorithm.IterationEvent += (iteration, error, avgError, maxError) =>
+            {
+                AlgorithmMinValues.Add(new ObservablePoint(iteration, error));
+                AlgorithmMaxValues.Add(new ObservablePoint(iteration, maxError));
+                AlgorithmAvgValues.Add(new ObservablePoint(iteration, avgError));
+
+                if (AlgorithmAvgValues.Count <= 10) return;
+
+                AlgorithmMinValues.RemoveAt(0);
+                AlgorithmMaxValues.RemoveAt(0);
+                AlgorithmAvgValues.RemoveAt(0);
+            };
+
+            Task.Run(() => _algorithm.Run());
+        }
+
         private void ButtonTraining_Click(object sender, RoutedEventArgs e) =>
             TabControl.SelectedItem = TabTraining;
 
@@ -165,6 +293,17 @@ namespace SmartGen
 
         private void ButtonLoadData_Click(object sender, RoutedEventArgs e)
         {
+            if (!UpDownLineSkip.Value.HasValue || !UpDownClassCount.Value.HasValue) return;
+
+            Mapper = new CsvMapper
+            {
+                Normalized = true,
+                Separator = TextBoxColumnSeparator.Text[0],
+                DecimalSeparator =
+                    CheckBoxDecimalSeparator.IsChecked != null && CheckBoxDecimalSeparator.IsChecked.Value ? '.' : ',',
+                SkipRows = (int) UpDownLineSkip.Value.Value
+            };
+
             var openFileDialog = new OpenFileDialog
             {
                 Filter = "csv file (*.csv)|*.csv",
@@ -174,15 +313,11 @@ namespace SmartGen
             if (openFileDialog.ShowDialog() != true) return;
 
             var filename = openFileDialog.FileName;
-            var data = CsvMapper.ReadDataFromFile(filename,
-                TextBoxColumnSeparator.Text.ToCharArray(),
-                Convert.ToInt32(UpDownClassCount.Value),
-                CheckBoxDecimalSeparator.IsChecked != null && CheckBoxDecimalSeparator.IsChecked.Value ? '.' : ',',
-                Convert.ToInt32(UpDownLineSkip.Value));
+            Data = Mapper.ReadDataFromFile(filename, Convert.ToInt32(UpDownClassCount.Value.Value));
 
-            DataSet = new TableData(data);
+            DataGridHelper.SetTableData(GridDataSet, new TableData(Data));
 
-            DataGridHelper.SetTableData(GridDataSet, DataSet);
+            ButtonStart.IsEnabled = true;
         }
 
         private void ButtonAddHiddenLayer_OnClick(object sender, RoutedEventArgs e)
@@ -195,6 +330,44 @@ namespace SmartGen
             Layers.Remove(Layers.Last());
         }
 
+        private void ComboBoxActivationFunction_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Function = ActivationFunctionExtension.GetFunction(
+                (ActivationFunctionType) ((ComboBox) sender).SelectedItem);
+
+            if (UpDownBias.Value == null) return;
+            var bias = UpDownBias.Value.Value;
+
+            ActivationFunctionChartValues.Clear();
+            ActivationFunctionChartValues.Add(new ObservablePoint(-10, Function.GetValue(-10)));
+            ActivationFunctionChartValues.AddRange(Enumerable.Range(-25, 51)
+                .Select(i => new ObservablePoint(i / 5.0 + bias, Function.GetValue(i / 5.0))));
+            ActivationFunctionChartValues.Add(new ObservablePoint(10, Function.GetValue(10)));
+        }
+
+        private void UpDownBias_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double?> e)
+        {
+            if (!UpDownBias.Value.HasValue) return;
+            var bias = UpDownBias.Value.Value;
+
+            if (UpDownT?.Value != null && Function is SigmoidFunction)
+                Function = new SigmoidFunction(UpDownT.Value.Value);
+
+            ActivationFunctionChartValues.Clear();
+            ActivationFunctionChartValues.Add(new ObservablePoint(-10, Function.GetValue(-10)));
+            ActivationFunctionChartValues.AddRange(Enumerable.Range(-25, 51)
+                .Select(i => new ObservablePoint(i / 5.0 + bias, Function.GetValue(i / 5.0))));
+            ActivationFunctionChartValues.Add(new ObservablePoint(10, Function.GetValue(10)));
+        }
+
         #endregion
+
+        private void TabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var s = (TabControl) sender;
+            if (s.SelectedIndex != 0) return;
+
+            Application.Current.Dispatcher?.Invoke(() => Chart.UpdateLayout());
+        }
     }
 }

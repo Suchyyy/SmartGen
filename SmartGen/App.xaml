@@ -45,12 +45,6 @@
             <SolidColorBrush x:Key="MahApps.Metro.Brushes.ToggleSwitchButton.OnSwitchBrush.Win10" Color="{DynamicResource Primary500}" />
             <SolidColorBrush x:Key="MahApps.Metro.Brushes.ToggleSwitchButton.OnSwitchMouseOverBrush.Win10" Color="{DynamicResource Primary400}" />
             <SolidColorBrush x:Key="MahApps.Metro.Brushes.ToggleSwitchButton.ThumbIndicatorCheckedBrush.Win10" Color="{DynamicResource Primary500Foreground}" />
-            
-            <!-- Activation Function Plots -->
-            <BitmapImage x:Key="BinaryStep" UriSource="/SmartGen;component/Resources/binary_step.png" />
-            <BitmapImage x:Key="Sigmoid" UriSource="/SmartGen;component/Resources/sigmoid.png" />
-            <BitmapImage x:Key="ReLU" UriSource="/SmartGen;component/Resources/relu.png" />
-            <BitmapImage x:Key="TanH" UriSource="/SmartGen;component/Resources/tanh.png" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

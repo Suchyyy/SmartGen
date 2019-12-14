@@ -5,13 +5,50 @@ using MoreLinq;
 
 namespace SmartGen.Model
 {
-    public class Data
+    public class Data 
     {
+        private readonly Random _random = new Random(DateTime.Now.Millisecond);
+
         public List<List<double>> Attributes { get; } = new List<List<double>>();
         public List<List<double>> ObjectClass { get; } = new List<List<double>>();
 
-        public List<double> MinClassValues { get; private set; } = new List<double>();
-        public List<double> MaxClassValues { get; private set; } = new List<double>();
+        public Dictionary<DataType, Data> SplitData(int trainingRatio, int testRatio, int validationRatio)
+        {
+            var dictionary = new Dictionary<DataType, Data>();
+            var trainingData = new Data();
+            var testingData = new Data();
+            var validationData = new Data();
+
+            var trainingProb = (double) trainingRatio / (trainingRatio + testRatio + validationRatio);
+            var testProb = (double) (trainingRatio + testRatio) / (trainingRatio + testRatio + validationRatio);
+            
+            for (var i = 0; i < Attributes.Count; i++)
+            {
+                var rand = _random.NextDouble();
+
+                if (rand < trainingProb)
+                {
+                    trainingData.Attributes.Add(Attributes[i]);
+                    trainingData.ObjectClass.Add(ObjectClass[i]);
+                }
+                else if (rand < testProb)
+                {
+                    testingData.Attributes.Add(Attributes[i]);
+                    testingData.ObjectClass.Add(ObjectClass[i]);
+                }
+                else
+                {
+                    validationData.Attributes.Add(Attributes[i]);
+                    validationData.ObjectClass.Add(ObjectClass[i]);
+                }
+            }
+
+            dictionary.Add(DataType.Training, trainingData);
+            dictionary.Add(DataType.Testing, testingData);
+            dictionary.Add(DataType.Validating, validationData);
+
+            return dictionary;
+        }
 
         public Data RemoveLeastRelevantColumn(List<List<double>> correlation, int resultColumnCount)
         {
@@ -49,9 +86,6 @@ namespace SmartGen.Model
             {
                 data.ObjectClass.Add(new List<double>(classes));
             }
-
-            data.MaxClassValues = new List<double>(MaxClassValues);
-            data.MinClassValues = new List<double>(MinClassValues);
 
             return data;
         }

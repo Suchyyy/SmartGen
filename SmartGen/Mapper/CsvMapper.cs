@@ -7,26 +7,30 @@ using SmartGen.Model;
 
 namespace SmartGen.Mapper
 {
-    public static class CsvMapper
+    public class CsvMapper
     {
+        public char Separator { get; set; } = ',';
+        public char DecimalSeparator { get; set; } = '.';
+        public int SkipRows { get; set; } = 2;
+        public bool Normalized { get; set; } = true;
+
         // ReSharper disable once ReturnTypeCanBeEnumerable.Global
-        public static Data ReadDataFromFile(string path, char[] separator, int classCount,
-            char decimalSeparator, int skipRow = 2, bool normalized = true)
+        public Data ReadDataFromFile(string path, int classCount)
         {
             var data = new Data();
-            var format = new NumberFormatInfo {NumberDecimalSeparator = decimalSeparator.ToString()};
+            var format = new NumberFormatInfo {NumberDecimalSeparator = DecimalSeparator.ToString()};
 
             using (var file = new StreamReader(path))
             {
-                for (var i = 0; i < skipRow; i++) file.ReadLine();
+                for (var i = 0; i < SkipRows; i++) file.ReadLine();
 
                 string line;
                 for (var i = 0; (line = file.ReadLine()) != null; i++)
                 {
-                    var parts = line.Split(separator);
+                    var parts = line.Split(Separator);
 
                     if (parts.Length == 0) continue;
-                    
+
                     var row = parts.Select(part => Convert.ToDouble(part.Trim(), format)).ToList();
 
                     data.ObjectClass.Add(new List<double>());
@@ -41,7 +45,7 @@ namespace SmartGen.Mapper
                 }
             }
 
-            if (normalized) Normalize(data);
+            if (Normalized) Normalize(data);
 
             return data;
         }
@@ -71,13 +75,6 @@ namespace SmartGen.Mapper
                     if (value > max[j + attCount]) max[j + attCount] = value;
                     if (value < min[j + attCount]) min[j + attCount] = value;
                 }
-            }
-
-            // save min and max of the classes (may be useful)
-            for (var i = attCount; i < data.ObjectClass.First().Count + attCount; i++)
-            {
-                data.MaxClassValues.Add(max[i]);
-                data.MinClassValues.Add(min[i]);
             }
 
             // normalize them

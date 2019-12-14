@@ -133,7 +133,7 @@ namespace SmartGen.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("4")]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
         public int InputLayerSize {
             get {
                 return ((int)(this["InputLayerSize"]));
@@ -207,13 +207,109 @@ namespace SmartGen.Properties {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<ArrayOfInt xmlns:xsi=\"http://www.w3.org" +
             "/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n  <int>" +
-            "4</int>\r\n</ArrayOfInt>")]
+            "10</int>\r\n</ArrayOfInt>")]
         public int[] HiddenLayers {
             get {
                 return ((int[])(this["HiddenLayers"]));
             }
             set {
                 this["HiddenLayers"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public double T {
+            get {
+                return ((double)(this["T"]));
+            }
+            set {
+                this["T"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        public int LinesToSkip {
+            get {
+                return ((int)(this["LinesToSkip"]));
+            }
+            set {
+                this["LinesToSkip"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int ClassesCount {
+            get {
+                return ((int)(this["ClassesCount"]));
+            }
+            set {
+                this["ClassesCount"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(",")]
+        public char ColumnSeparator {
+            get {
+                return ((char)(this["ColumnSeparator"]));
+            }
+            set {
+                this["ColumnSeparator"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool DotAsDecimalSeparator {
+            get {
+                return ((bool)(this["DotAsDecimalSeparator"]));
+            }
+            set {
+                this["DotAsDecimalSeparator"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int TrainingRatio {
+            get {
+                return ((int)(this["TrainingRatio"]));
+            }
+            set {
+                this["TrainingRatio"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        public int TestRatio {
+            get {
+                return ((int)(this["TestRatio"]));
+            }
+            set {
+                this["TestRatio"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int ValidationRatio {
+            get {
+                return ((int)(this["ValidationRatio"]));
+            }
+            set {
+                this["ValidationRatio"] = value;
             }
         }
     }

@@ -49,7 +49,7 @@ namespace Test
             [Values(10, 50, 250, 1000)] int iterations,
             [Values(30)] int dataSize)
         {
-            var neuralNetwork = new NeuralNetwork.NeuralNetwork();
+            var neuralNetwork = new NeuralNetwork.NeuralNetwork {MinWeight = -5, MaxWeight = 5};
             var activationFunction = new TanHFunction();
 
             neuralNetwork.ActivationFunction = activationFunction;
@@ -70,7 +70,7 @@ namespace Test
             {
                 foreach (var chromosome in genetic.Population)
                 {
-                    neuralNetwork.SetWeights(chromosome.Genome, -5, 5);
+                    neuralNetwork.SetWeights(chromosome.Genome);
 
                     foreach (var sampleData in data)
                     {
@@ -90,7 +90,7 @@ namespace Test
             }
 
             var best = genetic.Population.MinBy(chromosome => chromosome.Fitness).First();
-            neuralNetwork.SetWeights(best.Genome, -5, 5);
+            neuralNetwork.SetWeights(best.Genome);
 
             var correct = data.Count(d => Math.Abs(neuralNetwork.GetResult(d.Data)[0] - d.ObjectClass) < 0.3);
 
