@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using LiveCharts;
 using LiveCharts.Defaults;
 using Microsoft.Win32;
+using MoreLinq;
 using NeuralNetwork.ActivationFunction;
 using SmartGen.Mapper;
 using SmartGen.MathUtils;
@@ -38,6 +39,12 @@ namespace SmartGen
         public MainWindow()
         {
             ActivationFunctionChartValues = new ChartValues<ObservablePoint>();
+
+            for (var i = -10.0; i < 10.0; i += 0.5)
+            {
+                ActivationFunctionChartValues.Add(new ObservablePoint(i, 0.0));
+            }
+
             AlgorithmMinValues = new ChartValues<ObservablePoint>();
             AlgorithmAvgValues = new ChartValues<ObservablePoint>();
             AlgorithmMaxValues = new ChartValues<ObservablePoint>();
@@ -336,28 +343,20 @@ namespace SmartGen
                 (ActivationFunctionType) ((ComboBox) sender).SelectedItem);
 
             if (UpDownBias.Value == null) return;
-            var bias = UpDownBias.Value.Value;
 
-            ActivationFunctionChartValues.Clear();
-            ActivationFunctionChartValues.Add(new ObservablePoint(-10, Function.GetValue(-10)));
-            ActivationFunctionChartValues.AddRange(Enumerable.Range(-25, 51)
-                .Select(i => new ObservablePoint(i / 5.0 + bias, Function.GetValue(i / 5.0))));
-            ActivationFunctionChartValues.Add(new ObservablePoint(10, Function.GetValue(10)));
+            var bias = UpDownBias.Value.Value;
+            ActivationFunctionChartValues.ForEach(point => point.Y = Function.GetValue(point.X + bias));
         }
 
         private void UpDownBias_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double?> e)
         {
             if (!UpDownBias.Value.HasValue) return;
-            var bias = UpDownBias.Value.Value;
 
             if (UpDownT?.Value != null && Function is SigmoidFunction)
                 Function = new SigmoidFunction(UpDownT.Value.Value);
 
-            ActivationFunctionChartValues.Clear();
-            ActivationFunctionChartValues.Add(new ObservablePoint(-10, Function.GetValue(-10)));
-            ActivationFunctionChartValues.AddRange(Enumerable.Range(-25, 51)
-                .Select(i => new ObservablePoint(i / 5.0 + bias, Function.GetValue(i / 5.0))));
-            ActivationFunctionChartValues.Add(new ObservablePoint(10, Function.GetValue(10)));
+            var bias = UpDownBias.Value.Value;
+            ActivationFunctionChartValues.ForEach(point => point.Y = Function.GetValue(point.X + bias));
         }
 
         #endregion
