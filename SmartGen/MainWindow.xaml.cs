@@ -14,6 +14,7 @@ using SmartGen.MathUtils;
 using SmartGen.Model;
 using SmartGen.Properties;
 using SmartGen.Types;
+using Separator = LiveCharts.Wpf.Separator;
 
 namespace SmartGen
 {
@@ -22,11 +23,12 @@ namespace SmartGen
     /// </summary>
     public partial class MainWindow
     {
-        public ChartValues<ObservablePoint> ActivationFunctionChartValues { get; set; }
-
         public ChartValues<ObservablePoint> AlgorithmMinValues { get; set; }
         public ChartValues<ObservablePoint> AlgorithmMaxValues { get; set; }
         public ChartValues<ObservablePoint> AlgorithmAvgValues { get; set; }
+        public Separator Separator { get; set; }
+
+        public ChartValues<ObservablePoint> ActivationFunctionChartValues { get; set; }
 
         public IActivationFunction Function { get; set; }
 
@@ -38,16 +40,18 @@ namespace SmartGen
 
         public MainWindow()
         {
+            AlgorithmMinValues = new ChartValues<ObservablePoint>();
+            AlgorithmAvgValues = new ChartValues<ObservablePoint>();
+            AlgorithmMaxValues = new ChartValues<ObservablePoint>();
+            Separator = new Separator {Step = 1};
+
+
             ActivationFunctionChartValues = new ChartValues<ObservablePoint>();
 
             for (var i = -10.0; i < 10.0; i += 0.5)
             {
                 ActivationFunctionChartValues.Add(new ObservablePoint(i, 0.0));
             }
-
-            AlgorithmMinValues = new ChartValues<ObservablePoint>();
-            AlgorithmAvgValues = new ChartValues<ObservablePoint>();
-            AlgorithmMaxValues = new ChartValues<ObservablePoint>();
 
             Function = new TanHFunction();
 
@@ -276,7 +280,7 @@ namespace SmartGen
                 AlgorithmMaxValues.Add(new ObservablePoint(iteration, maxError));
                 AlgorithmAvgValues.Add(new ObservablePoint(iteration, avgError));
 
-                if (AlgorithmAvgValues.Count <= 10) return;
+                if (AlgorithmAvgValues.Count <= 11) return;
 
                 AlgorithmMinValues.RemoveAt(0);
                 AlgorithmMaxValues.RemoveAt(0);

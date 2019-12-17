@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MoreLinq;
 using NeuralNetwork;
 using NeuralNetwork.ActivationFunction;
 using SmartGen.Model;
@@ -37,7 +36,8 @@ namespace SmartGen
             var keepLooping = true;
             var trainingData = DataSet[DataType.Training];
             var trainingDataCount = trainingData.Attributes.Count;
-            
+            var populationCount = _geneticAlgorithm.Population.Count;
+
             for (var iteration = 0; iteration < MaxIterations && keepLooping; iteration++)
             {
                 foreach (var chromosome in _geneticAlgorithm.Population)
@@ -69,7 +69,7 @@ namespace SmartGen
                     if (fitness < ErrorTolerance) keepLooping = false;
                 }
 
-                avgError /= _geneticAlgorithm.Population.Count;
+                avgError /= populationCount;
 
                 IterationEvent(iteration, minError, avgError, maxError);
 
