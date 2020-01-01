@@ -14,6 +14,8 @@ namespace SmartGen
 {
     public class SmartGenAlgorithm
     {
+        private static readonly object Locker = new object();
+
         public delegate void IterationDelegate(int iteration, double trainError, double validationError);
 
         public event IterationDelegate IterationEvent = delegate { };
@@ -28,7 +30,7 @@ namespace SmartGen
 
         public int MaxIterations { get; set; }
         public double ErrorTolerance { get; set; }
-        
+
 
         public SmartGenAlgorithm(GeneticAlgorithm.GeneticAlgorithm geneticAlgorithm,
             NeuralNetwork.NeuralNetwork neuralNetwork)
@@ -47,7 +49,10 @@ namespace SmartGen
 
         public void Stop()
         {
-            _keepLooping = false;
+            lock (Locker)
+            {
+                _keepLooping = false;
+            }
         }
 
         public void Run()
@@ -90,11 +95,21 @@ namespace SmartGen
                 var err = _geneticAlgorithm.Population.Min(chromosome => chromosome.Fitness);
                 var valErr = _geneticAlgorithm.Population.Min(chromosome => chromosome.ValidationFitness);
 
-                _keepLooping = err > ErrorTolerance;
-
                 IterationEvent(iteration, err, valErr);
 
-                if (_keepLooping && iteration < MaxIterations - 1) _geneticAlgorithm.NextGeneration();
+                lock (Locker)
+                {
+                    if (_keepLooping)
+                    {
+                        _keepLooping = err > ErrorTolerance;
+
+                        if (iteration < MaxIterations - 1) _geneticAlgorithm.NextGeneration();
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
 
                 while (IsPaused)
                 {

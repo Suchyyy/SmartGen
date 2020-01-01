@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using LiveCharts;
 using LiveCharts.Defaults;
-using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using MoreLinq;
 using NeuralNetwork.ActivationFunction;
@@ -18,7 +16,6 @@ using SmartGen.MathUtils;
 using SmartGen.Model;
 using SmartGen.Properties;
 using SmartGen.Types;
-using Separator = LiveCharts.Wpf.Separator;
 
 namespace SmartGen
 {
@@ -30,7 +27,6 @@ namespace SmartGen
         public Func<double, string> Formatter { get; set; }
         public ChartValues<ObservablePoint> AlgorithmErrorValues { get; set; }
         public ChartValues<ObservablePoint> AlgorithmValidationValues { get; set; }
-        public Separator Separator { get; set; }
 
         public ChartValues<ObservablePoint> ActivationFunctionChartValues { get; set; }
 
@@ -43,16 +39,15 @@ namespace SmartGen
         private SmartGenAlgorithm _algorithm;
         private NeuralNetwork.NeuralNetwork _trainedNetwork;
         private Task _algorithmTask;
-        private long _miliseconds;
+        private long _milliseconds;
 
         public MainWindow()
         {
             Formatter = d => d.ToString("0.###", CultureInfo.InvariantCulture);
-            _miliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            _milliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
             AlgorithmErrorValues = new ChartValues<ObservablePoint>();
             AlgorithmValidationValues = new ChartValues<ObservablePoint>();
-            Separator = new Separator {Step = 1};
 
             ActivationFunctionChartValues = new ChartValues<ObservablePoint>();
 
@@ -270,7 +265,7 @@ namespace SmartGen
 
             _algorithm.Stop();
 
-            Parallel.Invoke(() =>
+            Task.Run(() =>
             {
                 _algorithmTask.Wait();
                 _trainedNetwork = _algorithm.GetTrainedNeuralNetwork();
@@ -283,7 +278,7 @@ namespace SmartGen
             if (_algorithm != null)
             {
                 var s = ((ToggleButton) sender).IsChecked;
-                _algorithm.IsPaused = s ?? !_algorithm.IsPaused;
+                _algorithm.IsPaused = !s ?? !_algorithm.IsPaused;
                 return;
             }
 
@@ -313,8 +308,8 @@ namespace SmartGen
             _algorithm.IterationEvent += (iteration, error, validationError) =>
             {
                 var current = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                if (current - _miliseconds < 500) return;
-                _miliseconds = current;
+                if (current - _milliseconds < 500) return;
+                _milliseconds = current;
 
                 AlgorithmErrorValues.Add(new ObservablePoint(iteration, error));
                 AlgorithmValidationValues.Add(new ObservablePoint(iteration, validationError));
@@ -323,12 +318,17 @@ namespace SmartGen
 
                 AlgorithmErrorValues.RemoveAt(0);
                 AlgorithmValidationValues.RemoveAt(0);
+                
             };
 
             _algorithmTask = Task.Run(() => _algorithm.Run());
             _algorithmTask.ContinueWith(task =>
             {
-                ButtonStart.Dispatcher?.Invoke(() => ButtonStart.IsChecked = false);
+                ButtonStart.Dispatcher?.Invoke(() =>
+                {
+                    ButtonStart.IsChecked = false;
+                    ButtonStart.IsEnabled = true;
+                });
                 ButtonStop.Dispatcher?.Invoke(() => ButtonStop.IsEnabled = false);
                 _trainedNetwork = _algorithm.GetTrainedNeuralNetwork();
                 _algorithm = null;

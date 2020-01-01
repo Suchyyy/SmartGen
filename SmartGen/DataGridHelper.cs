@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using SmartGen.Model;
-using SmartGen.Properties;
 using DataGridTextColumn = MaterialDesignThemes.Wpf.DataGridTextColumn;
 
 namespace SmartGen
