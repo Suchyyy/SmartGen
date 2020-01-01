@@ -318,7 +318,6 @@ namespace SmartGen
 
                 AlgorithmErrorValues.RemoveAt(0);
                 AlgorithmValidationValues.RemoveAt(0);
-                
             };
 
             _algorithmTask = Task.Run(() => _algorithm.Run());
