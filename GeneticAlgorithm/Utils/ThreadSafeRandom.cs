@@ -41,25 +41,6 @@ namespace GeneticAlgorithm.Utils
             return _local.Next(min, max);
         }
 
-        public static short NextShort(short min, short max)
-        {
-            if (_local == null)
-            {
-                lock (Global)
-                {
-                    if (_local == null)
-                    {
-                        var seed = Global.Next();
-                        _local = new Random(seed);
-                    }
-                }
-            }
-
-            return (short) _local.Next(min, max);
-        }
-
         public static int NextInt(int max) => NextInt(0, max);
-
-        public static int NextShort(short max) => NextShort(0, max);
     }
 }

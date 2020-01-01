@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using MoreLinq;
 using NeuralNetwork;
 using NeuralNetwork.ActivationFunction;
 using SmartGen.Model;
@@ -12,33 +14,50 @@ namespace SmartGen
 {
     public class SmartGenAlgorithm
     {
-        public delegate void IterationDelegate(int iteration, double minError, double avgError, double maxError);
+        public delegate void IterationDelegate(int iteration, double trainError, double validationError);
 
         public event IterationDelegate IterationEvent = delegate { };
 
         private readonly GeneticAlgorithm.GeneticAlgorithm _geneticAlgorithm;
         private readonly NeuralNetwork.NeuralNetwork _neuralNetwork;
 
+        private bool _keepLooping = true;
+
         public Dictionary<DataType, Data> DataSet { get; set; }
+        public bool IsPaused { get; set; }
 
         public int MaxIterations { get; set; }
         public double ErrorTolerance { get; set; }
+        
 
         public SmartGenAlgorithm(GeneticAlgorithm.GeneticAlgorithm geneticAlgorithm,
             NeuralNetwork.NeuralNetwork neuralNetwork)
         {
             _geneticAlgorithm = geneticAlgorithm;
             _neuralNetwork = neuralNetwork;
+            IsPaused = false;
+        }
+
+        public NeuralNetwork.NeuralNetwork GetTrainedNeuralNetwork()
+        {
+            _neuralNetwork.SetWeights(_geneticAlgorithm.Population.MinBy(chromosome => chromosome.Fitness)
+                .First().Genome);
+            return _neuralNetwork;
+        }
+
+        public void Stop()
+        {
+            _keepLooping = false;
         }
 
         public void Run()
         {
-            var keepLooping = true;
             var trainingData = DataSet[DataType.Training];
+            var validationData = DataSet[DataType.Validating];
             var trainingDataCount = trainingData.Attributes.Count;
-            var populationCount = _geneticAlgorithm.Population.Count;
+            var validationDataCount = validationData.Attributes.Count;
 
-            for (var iteration = 0; iteration < MaxIterations && keepLooping; iteration++)
+            for (var iteration = 0; iteration < MaxIterations && _keepLooping; iteration++)
             {
                 foreach (var chromosome in _geneticAlgorithm.Population)
                 {
@@ -53,27 +72,34 @@ namespace SmartGen
                             chromosome.Fitness += Math.Abs(res[0] - trainingData.ObjectClass[i][0]);
                         }
                     });
+
+                    Parallel.For(0, validationDataCount, i =>
+                    {
+                        var res = _neuralNetwork.GetResult(validationData.Attributes[i]);
+
+                        lock (chromosome)
+                        {
+                            chromosome.ValidationFitness += Math.Abs(res[0] - validationData.ObjectClass[i][0]);
+                        }
+                    });
+
+                    chromosome.Fitness /= trainingDataCount;
+                    chromosome.ValidationFitness /= validationDataCount;
                 }
 
-                var avgError = 0.0;
-                var minError = _geneticAlgorithm.Population.First().Fitness;
-                var maxError = _geneticAlgorithm.Population.First().Fitness;
+                var err = _geneticAlgorithm.Population.Min(chromosome => chromosome.Fitness);
+                var valErr = _geneticAlgorithm.Population.Min(chromosome => chromosome.ValidationFitness);
 
-                foreach (var chromosome in _geneticAlgorithm.Population)
+                _keepLooping = err > ErrorTolerance;
+
+                IterationEvent(iteration, err, valErr);
+
+                if (_keepLooping && iteration < MaxIterations - 1) _geneticAlgorithm.NextGeneration();
+
+                while (IsPaused)
                 {
-                    var fitness = chromosome.Fitness;
-
-                    avgError += fitness;
-                    if (fitness > maxError) maxError = fitness;
-                    if (fitness < minError) minError = fitness;
-                    if (fitness < ErrorTolerance) keepLooping = false;
+                    Thread.Sleep(100);
                 }
-
-                avgError /= populationCount;
-
-                IterationEvent(iteration, minError, avgError, maxError);
-
-                if (keepLooping && iteration < MaxIterations - 1) _geneticAlgorithm.NextGeneration();
             }
         }
 

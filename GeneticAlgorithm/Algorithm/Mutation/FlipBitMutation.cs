@@ -13,7 +13,7 @@ namespace GeneticAlgorithm.Algorithm.Mutation
         {
             var index = ThreadSafeRandom.NextInt(chromosome.GenomeLength());
 
-            chromosome.Genome[index / 16] ^= (short) (1 << (index % 16));
+            chromosome.Genome[index / 32] ^= (int) (1 << (index % 32));
         }
     }
 }

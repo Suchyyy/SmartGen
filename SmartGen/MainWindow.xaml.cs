@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using LiveCharts;
 using LiveCharts.Defaults;
+using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using MoreLinq;
 using NeuralNetwork.ActivationFunction;
@@ -23,9 +27,9 @@ namespace SmartGen
     /// </summary>
     public partial class MainWindow
     {
-        public ChartValues<ObservablePoint> AlgorithmMinValues { get; set; }
-        public ChartValues<ObservablePoint> AlgorithmMaxValues { get; set; }
-        public ChartValues<ObservablePoint> AlgorithmAvgValues { get; set; }
+        public Func<double, string> Formatter { get; set; }
+        public ChartValues<ObservablePoint> AlgorithmErrorValues { get; set; }
+        public ChartValues<ObservablePoint> AlgorithmValidationValues { get; set; }
         public Separator Separator { get; set; }
 
         public ChartValues<ObservablePoint> ActivationFunctionChartValues { get; set; }
@@ -37,18 +41,22 @@ namespace SmartGen
 
         public Data Data { get; set; }
         private SmartGenAlgorithm _algorithm;
+        private NeuralNetwork.NeuralNetwork _trainedNetwork;
+        private Task _algorithmTask;
+        private long _miliseconds;
 
         public MainWindow()
         {
-            AlgorithmMinValues = new ChartValues<ObservablePoint>();
-            AlgorithmAvgValues = new ChartValues<ObservablePoint>();
-            AlgorithmMaxValues = new ChartValues<ObservablePoint>();
-            Separator = new Separator {Step = 1};
+            Formatter = d => d.ToString("0.###", CultureInfo.InvariantCulture);
+            _miliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
+            AlgorithmErrorValues = new ChartValues<ObservablePoint>();
+            AlgorithmValidationValues = new ChartValues<ObservablePoint>();
+            Separator = new Separator {Step = 1};
 
             ActivationFunctionChartValues = new ChartValues<ObservablePoint>();
 
-            for (var i = -10.0; i < 10.0; i += 0.5)
+            for (var i = -10.0; i < 10.0; i += 0.25)
             {
                 ActivationFunctionChartValues.Add(new ObservablePoint(i, 0.0));
             }
@@ -248,11 +256,39 @@ namespace SmartGen
 
         #region Events
 
+        private void ButtonStop_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (_algorithm == null) return;
+
+            ((Button) sender).IsEnabled = false;
+
+            ButtonStart.Dispatcher?.Invoke(() =>
+            {
+                ButtonStart.IsChecked = false;
+                ButtonStart.IsEnabled = false;
+            });
+
+            _algorithm.Stop();
+
+            Parallel.Invoke(() =>
+            {
+                _algorithmTask.Wait();
+                _trainedNetwork = _algorithm.GetTrainedNeuralNetwork();
+                _algorithm = null;
+            });
+        }
+
         private void ButtonStartAlgorithm_Click(object sender, RoutedEventArgs e)
         {
-            AlgorithmMinValues.Clear();
-            AlgorithmMaxValues.Clear();
-            AlgorithmAvgValues.Clear();
+            if (_algorithm != null)
+            {
+                var s = ((ToggleButton) sender).IsChecked;
+                _algorithm.IsPaused = s ?? !_algorithm.IsPaused;
+                return;
+            }
+
+            AlgorithmErrorValues.Clear();
+            AlgorithmValidationValues.Clear();
 
             var neuralNetwork = SmartGenAlgorithm.CreateNeuralNetwork();
             var geneticAlgorithm = SmartGenAlgorithm.CreateGeneticAlgorithm(neuralNetwork.GetConnectionCount());
@@ -274,20 +310,38 @@ namespace SmartGen
                 MaxIterations = Settings.Default.MaxGenerationCount
             };
 
-            _algorithm.IterationEvent += (iteration, error, avgError, maxError) =>
+            _algorithm.IterationEvent += (iteration, error, validationError) =>
             {
-                AlgorithmMinValues.Add(new ObservablePoint(iteration, error));
-                AlgorithmMaxValues.Add(new ObservablePoint(iteration, maxError));
-                AlgorithmAvgValues.Add(new ObservablePoint(iteration, avgError));
+                var current = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                if (current - _miliseconds < 500) return;
+                _miliseconds = current;
 
-                if (AlgorithmAvgValues.Count <= 11) return;
+                AlgorithmErrorValues.Add(new ObservablePoint(iteration, error));
+                AlgorithmValidationValues.Add(new ObservablePoint(iteration, validationError));
 
-                AlgorithmMinValues.RemoveAt(0);
-                AlgorithmMaxValues.RemoveAt(0);
-                AlgorithmAvgValues.RemoveAt(0);
+                if (AlgorithmErrorValues.Count <= 11) return;
+
+                AlgorithmErrorValues.RemoveAt(0);
+                AlgorithmValidationValues.RemoveAt(0);
             };
 
-            Task.Run(() => _algorithm.Run());
+            _algorithmTask = Task.Run(() => _algorithm.Run());
+            _algorithmTask.ContinueWith(task =>
+            {
+                ButtonStart.Dispatcher?.Invoke(() => ButtonStart.IsChecked = false);
+                ButtonStop.Dispatcher?.Invoke(() => ButtonStop.IsEnabled = false);
+                _trainedNetwork = _algorithm.GetTrainedNeuralNetwork();
+                _algorithm = null;
+            });
+            ButtonStop.IsEnabled = true;
+        }
+
+        private void TabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var s = (TabControl) sender;
+            if (s.SelectedIndex != 0) return;
+
+            Application.Current.Dispatcher?.Invoke(() => Chart.UpdateLayout());
         }
 
         private void ButtonTraining_Click(object sender, RoutedEventArgs e) =>
@@ -349,7 +403,7 @@ namespace SmartGen
             if (UpDownBias.Value == null) return;
 
             var bias = UpDownBias.Value.Value;
-            ActivationFunctionChartValues.ForEach(point => point.Y = Function.GetValue(point.X + bias));
+            ActivationFunctionChartValues.ForEach(point => point.Y = Math.Round(Function.GetValue(point.X + bias), 3));
         }
 
         private void UpDownBias_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double?> e)
@@ -360,17 +414,9 @@ namespace SmartGen
                 Function = new SigmoidFunction(UpDownT.Value.Value);
 
             var bias = UpDownBias.Value.Value;
-            ActivationFunctionChartValues.ForEach(point => point.Y = Function.GetValue(point.X + bias));
+            ActivationFunctionChartValues.ForEach(point => point.Y = Math.Round(Function.GetValue(point.X + bias), 3));
         }
 
         #endregion
-
-        private void TabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var s = (TabControl) sender;
-            if (s.SelectedIndex != 0) return;
-
-            Application.Current.Dispatcher?.Invoke(() => Chart.UpdateLayout());
-        }
     }
 }

@@ -34,21 +34,21 @@ namespace GeneticAlgorithm.Algorithm.Crossover
 
             for (var i = start; i < end; i++)
             {
-                var gen = i / 16;
-                var bit = i - gen * 16;
+                var gen = i / 32;
+                var bit = i - gen * 32;
 
-                if (bit == 0 && end / 16 != gen)
+                if (bit == 0 && end / 32 != gen)
                 {
                     var genome = child1.Genome[gen];
                     child1.Genome[gen] = child2.Genome[gen];
                     child2.Genome[gen] = genome;
 
-                    i += 15;
+                    i += 31;
                 }
                 else if (((child1.Genome[gen] >> bit & 1) ^ (child2.Genome[gen] >> bit & 1)) == 1)
                 {
-                    child1.Genome[gen] ^= (short) (1 << bit);
-                    child2.Genome[gen] ^= (short) (1 << bit);
+                    child1.Genome[gen] ^= (int) (1 << bit);
+                    child2.Genome[gen] ^= (int) (1 << bit);
                 }
             }
         }

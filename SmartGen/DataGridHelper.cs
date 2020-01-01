@@ -1,7 +1,13 @@
-﻿using System.Windows;
+﻿using System;
+using System.Collections;
+using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using SmartGen.Model;
+using SmartGen.Properties;
+using DataGridTextColumn = MaterialDesignThemes.Wpf.DataGridTextColumn;
 
 namespace SmartGen
 {
@@ -29,8 +35,17 @@ namespace SmartGen
                 var column = new DataGridTextColumn
                 {
                     Binding = new Binding($"Cells[{i}]"),
-                    Header = tableData.ColumnHeaders[i]
+                    Header = tableData.ColumnHeaders[i],
                 };
+
+                if (tableDataColumnHeader.Contains("class"))
+                {
+                    var baseStyle = (Style) Application.Current.Resources["MaterialDesignDataGridColumnHeader"];
+                    var style = new Style(typeof(DataGridColumnHeader), baseStyle);
+                    style.Setters.Add(new Setter(TextBlock.FontWeightProperty, FontWeights.Bold));
+                    column.HeaderStyle = style;
+                    column.FontWeight = FontWeights.Bold;
+                }
 
                 dataGrid.Columns.Add(column);
             }

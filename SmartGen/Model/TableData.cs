@@ -18,19 +18,19 @@ namespace SmartGen.Model
                 NumberDecimalDigits = 3
             };
 
-            for (var i = 1; i <= data.Attributes.First().Count; i++)
-            {
-                ColumnHeaders.Add("attribute " + i);
-            }
-
             for (var i = 1; i <= data.ObjectClass.First().Count; i++)
             {
                 ColumnHeaders.Add("class " + i);
             }
 
+            for (var i = 1; i <= data.Attributes.First().Count; i++)
+            {
+                ColumnHeaders.Add("attribute " + i);
+            }
+
             for (var i = 0; i < data.Attributes.Count; i++)
             {
-                var row = new TableDataRow(data.Attributes[i].Concat(data.ObjectClass[i])
+                var row = new TableDataRow(data.ObjectClass[i].Concat(data.Attributes[i])
                     .Select(d => d.ToString("N", format)).ToList());
 
                 Rows.Add(row);

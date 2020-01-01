@@ -193,7 +193,7 @@ namespace SmartGen.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("TanH")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Sigmoid")]
         public global::SmartGen.Types.ActivationFunctionType ActivationFunction {
             get {
                 return ((global::SmartGen.Types.ActivationFunctionType)(this["ActivationFunction"]));

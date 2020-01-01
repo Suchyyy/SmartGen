@@ -39,10 +39,10 @@ namespace NeuralNetwork
             return Layers.Sum(layer => layer.InputSize * layer.OutputSize);
         }
 
-        public void SetWeights(IEnumerable<short> genome)
+        public void SetWeights(IEnumerable<int> genome)
         {
             var weights = genome
-                .Select(v => MathUtils.GetInNewRange(v, short.MinValue, short.MaxValue, MinWeight, MaxWeight))
+                .Select(v => MathUtils.GetInNewRange(v, int.MinValue, int.MaxValue, MinWeight, MaxWeight))
                 .ToArray();
 
             var offset = 0;
