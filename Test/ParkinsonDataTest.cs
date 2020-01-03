@@ -10,8 +10,8 @@ using NeuralNetwork;
 using NeuralNetwork.ActivationFunction;
 using NUnit.Framework;
 using SmartGen.Mapper;
-using SmartGen.MathUtils;
 using SmartGen.Model;
+using SmartGen.Utils;
 
 namespace Test
 {
@@ -60,7 +60,7 @@ namespace Test
                         var res = neuralNetwork.GetResult(trainingData.Attributes[i]);
                         lock (chromosome)
                         {
-                            chromosome.Fitness += Math.Abs(res[0] - trainingData.ObjectClass[i][0]);
+                            chromosome.Fitness += Math.Abs(res[0] - trainingData.ObjectClass[i]);
                         }
                     });
                 }
@@ -81,7 +81,7 @@ namespace Test
 
             var correct = testingData.Attributes
                 .AsParallel()
-                .Where((t, i) => Math.Abs(neuralNetwork.GetResult(t)[0] - testingData.ObjectClass[i][0]) < 0.3)
+                .Where((t, i) => Math.Abs(neuralNetwork.GetResult(t)[0] - testingData.ObjectClass[i]) < 0.3)
                 .Count();
 
             Console.WriteLine(

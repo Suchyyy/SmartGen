@@ -5,22 +5,12 @@ using System.Windows.Data;
 using SmartGen.Model;
 using DataGridTextColumn = MaterialDesignThemes.Wpf.DataGridTextColumn;
 
-namespace SmartGen
+namespace SmartGen.Utils
 {
     public static class DataGridHelper
     {
-        public static readonly DependencyProperty TableDataProperty = DependencyProperty.RegisterAttached(
-            "TableData",
-            typeof(TableData),
-            typeof(DataGridHelper),
-            new PropertyMetadata(null, TableDataChanged)
-        );
-
-        private static void TableDataChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        public static void SetTableData(DataGrid dataGrid, TableData tableData)
         {
-            var dataGrid = (DataGrid) o;
-            var tableData = (TableData) e.NewValue;
-
             if (dataGrid == null || tableData == null) return;
 
             dataGrid.Columns.Clear();
@@ -34,7 +24,7 @@ namespace SmartGen
                     Header = tableData.ColumnHeaders[i],
                 };
 
-                if (tableDataColumnHeader.Contains("class"))
+                if (tableDataColumnHeader.Contains("class") || tableDataColumnHeader.Contains("prediction"))
                 {
                     var baseStyle = (Style) Application.Current.Resources["MaterialDesignDataGridColumnHeader"];
                     var style = new Style(typeof(DataGridColumnHeader), baseStyle);
@@ -47,16 +37,6 @@ namespace SmartGen
             }
 
             dataGrid.ItemsSource = tableData.Rows;
-        }
-
-        public static TableData GetTableData(DependencyObject o)
-        {
-            return (TableData) o.GetValue(TableDataProperty);
-        }
-
-        public static void SetTableData(DependencyObject o, TableData data)
-        {
-            o.SetValue(TableDataProperty, data);
         }
     }
 }

@@ -50,6 +50,7 @@
     <Compile Include="Algorithm\Model\Chromosome.cs" />
     <Compile Include="Algorithm\Mutation\FlipBitMutation.cs" />
     <Compile Include="Algorithm\Mutation\Mutation.cs" />
+    <Compile Include="Algorithm\Selection\RankSelection.cs" />
     <Compile Include="Algorithm\Selection\Selection.cs" />
     <Compile Include="Algorithm\Selection\TournamentSelection.cs" />
     <Compile Include="GeneticAlgorithm.cs" />

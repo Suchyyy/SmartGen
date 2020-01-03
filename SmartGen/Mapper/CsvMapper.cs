@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -25,7 +24,7 @@ namespace SmartGen.Mapper
                 for (var i = 0; i < SkipRows; i++) file.ReadLine();
 
                 string line;
-                for (var i = 0; (line = file.ReadLine()) != null; i++)
+                while ((line = file.ReadLine()) != null)
                 {
                     var parts = line.Split(Separator);
 
@@ -33,11 +32,9 @@ namespace SmartGen.Mapper
 
                     var row = parts.Select(part => Convert.ToDouble(part.Trim(), format)).ToList();
 
-                    data.ObjectClass.Add(new List<double>());
-
                     for (var j = 0; j < classCount; j++)
                     {
-                        data.ObjectClass[i].Add(row.Last());
+                        data.ObjectClass.Add(row.Last());
                         row.RemoveAt(row.Count - 1);
                     }
 
@@ -52,29 +49,28 @@ namespace SmartGen.Mapper
 
         private static void Normalize(Data data)
         {
-            var max = new double[data.Attributes.First().Count + data.ObjectClass.First().Count];
-            var min = new double[data.Attributes.First().Count + data.ObjectClass.First().Count];
+            var max = new double[data.Attributes.First().Count + 1];
+            var min = new double[data.Attributes.First().Count + 1];
 
             var attCount = data.Attributes.First().Count;
 
-            // find min and max for each attribute and class
+            // find min and max for each attribute
             for (var i = 0; i < data.Attributes.Count; i++)
             {
+                double value;
+
                 for (var j = 0; j < attCount; j++)
                 {
-                    var value = data.Attributes[i][j];
+                    value = data.Attributes[i][j];
 
                     if (value > max[j]) max[j] = value;
                     if (value < min[j]) min[j] = value;
                 }
 
-                for (var j = 0; j < data.ObjectClass[i].Count; j++)
-                {
-                    var value = data.ObjectClass[i][j];
+                value = data.ObjectClass[i];
 
-                    if (value > max[j + attCount]) max[j + attCount] = value;
-                    if (value < min[j + attCount]) min[j + attCount] = value;
-                }
+                if (value > max[attCount]) max[attCount] = value;
+                if (value < min[attCount]) min[attCount] = value;
             }
 
             // normalize them
@@ -85,11 +81,7 @@ namespace SmartGen.Mapper
                     data.Attributes[i][j] = (data.Attributes[i][j] - min[j]) / (max[j] - min[j]);
                 }
 
-                for (var j = 0; j < data.ObjectClass[i].Count; j++)
-                {
-                    data.ObjectClass[i][j] = (data.ObjectClass[i][j] - min[j + attCount]) /
-                                             (max[j + attCount] - min[j + attCount]);
-                }
+                data.ObjectClass[i] = (data.ObjectClass[i] - min[attCount]) / (max[attCount] - min[attCount]);
             }
         }
     }

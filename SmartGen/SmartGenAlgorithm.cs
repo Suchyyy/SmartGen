@@ -74,34 +74,33 @@ namespace SmartGen
 
                         lock (chromosome)
                         {
-                            chromosome.Fitness += Math.Abs(res[0] - trainingData.ObjectClass[i][0]);
-                        }
-                    });
-
-                    Parallel.For(0, validationDataCount, i =>
-                    {
-                        var res = _neuralNetwork.GetResult(validationData.Attributes[i]);
-
-                        lock (chromosome)
-                        {
-                            chromosome.ValidationFitness += Math.Abs(res[0] - validationData.ObjectClass[i][0]);
+                            chromosome.Fitness += Math.Abs(res[0] - trainingData.ObjectClass[i]);
                         }
                     });
 
                     chromosome.Fitness /= trainingDataCount;
-                    chromosome.ValidationFitness /= validationDataCount;
                 }
 
-                var err = _geneticAlgorithm.Population.Min(chromosome => chromosome.Fitness);
-                var valErr = _geneticAlgorithm.Population.Min(chromosome => chromosome.ValidationFitness);
+                var best = _geneticAlgorithm.Population.MinBy(chromosome => chromosome.Fitness).First();
 
-                IterationEvent(iteration, err, valErr);
+                Parallel.For(0, validationDataCount, i =>
+                {
+                    var res = _neuralNetwork.GetResult(validationData.Attributes[i]);
+
+                    lock (best)
+                    {
+                        best.ValidationFitness += Math.Abs(res[0] - validationData.ObjectClass[i]);
+                    }
+                });
+                best.ValidationFitness /= validationDataCount;
+
+                IterationEvent(iteration, best.Fitness, best.ValidationFitness);
 
                 lock (Locker)
                 {
                     if (_keepLooping)
                     {
-                        _keepLooping = err > ErrorTolerance;
+                        _keepLooping = best.Fitness > ErrorTolerance;
 
                         if (iteration < MaxIterations - 1) _geneticAlgorithm.NextGeneration();
                     }

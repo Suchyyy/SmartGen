@@ -82,6 +82,7 @@
     <Compile Include="Types\EnumDescriptionTypeConverter.cs" />
     <Compile Include="Types\MutationType.cs" />
     <Compile Include="Types\SelectionType.cs" />
+    <Compile Include="Utils\DataGridHelper.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -90,7 +91,6 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataGridHelper.cs" />
     <Compile Include="Mapper\CsvMapper.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -98,7 +98,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MathUtils\Correlation.cs" />
+    <Compile Include="Utils\Correlation.cs" />
     <Compile Include="Model\Data.cs" />
     <Compile Include="Model\TableData.cs" />
     <Compile Include="Model\TableDataRow.cs" />

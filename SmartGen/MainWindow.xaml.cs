@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -12,10 +13,10 @@ using Microsoft.Win32;
 using MoreLinq;
 using NeuralNetwork.ActivationFunction;
 using SmartGen.Mapper;
-using SmartGen.MathUtils;
 using SmartGen.Model;
 using SmartGen.Properties;
 using SmartGen.Types;
+using SmartGen.Utils;
 
 namespace SmartGen
 {
@@ -37,7 +38,6 @@ namespace SmartGen
 
         public Data Data { get; set; }
         private SmartGenAlgorithm _algorithm;
-        private NeuralNetwork.NeuralNetwork _trainedNetwork;
         private Task _algorithmTask;
         private long _milliseconds;
 
@@ -67,6 +67,191 @@ namespace SmartGen
 
             DataContext = this;
         }
+
+        private void HandleAlgorithmResult(Task task)
+        {
+            ButtonStop.Dispatcher?.Invoke(() => ButtonStop.IsEnabled = false);
+
+            var trainedNetwork = _algorithm.GetTrainedNeuralNetwork();
+            var testingData = _algorithm.DataSet[DataType.Testing];
+
+            var predictions = testingData.Attributes
+                .Select(testingDataAttribute => trainedNetwork.GetResult(testingDataAttribute).ToList())
+                .ToList();
+
+            RectangleDataGridTest.Dispatcher?.Invoke(() => RectangleDataGridTest.Visibility = Visibility.Visible);
+            DataGridTest.Dispatcher?.Invoke(() =>
+            {
+                DataGridHelper.SetTableData(DataGridTest, new TableData(predictions, testingData));
+                DataGridTest.Visibility = Visibility.Visible;
+            });
+
+            _algorithm = null;
+
+            ButtonStart.Dispatcher?.Invoke(() =>
+            {
+                ButtonStart.IsChecked = false;
+                ButtonStart.IsEnabled = true;
+            });
+        }
+
+        #region Events
+
+        private void ButtonStop_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (_algorithm == null) return;
+
+            ((Button) sender).IsEnabled = false;
+
+            ButtonStart.Dispatcher?.Invoke(() =>
+            {
+                ButtonStart.IsChecked = false;
+                ButtonStart.IsEnabled = false;
+            });
+
+            _algorithm.Stop();
+        }
+
+        private void ButtonStartAlgorithm_Click(object sender, RoutedEventArgs e)
+        {
+            if (_algorithm != null)
+            {
+                var s = ((ToggleButton) sender).IsChecked;
+                _algorithm.IsPaused = !s ?? !_algorithm.IsPaused;
+                return;
+            }
+
+            RectangleDataGridTest.Dispatcher?.Invoke(() => RectangleDataGridTest.Visibility = Visibility.Collapsed);
+            DataGridTest.Dispatcher?.Invoke(() =>
+            {
+                DataGridTest.Visibility = Visibility.Collapsed;
+            });
+
+            AlgorithmErrorValues.Clear();
+            AlgorithmValidationValues.Clear();
+
+            var neuralNetwork = SmartGenAlgorithm.CreateNeuralNetwork();
+            var geneticAlgorithm = SmartGenAlgorithm.CreateGeneticAlgorithm(neuralNetwork.GetConnectionCount());
+
+            if (Settings.Default.InputLayerSize < Data.Attributes.First().Count)
+            {
+                var correlation = Correlation.GetCorrelation(Data);
+                Data = Data.RemoveLeastRelevantColumn(correlation, Settings.Default.InputLayerSize);
+            }
+
+            var dataSets = Data.SplitData(Settings.Default.TrainingRatio,
+                Settings.Default.TestRatio,
+                Settings.Default.ValidationRatio);
+
+            _algorithm = new SmartGenAlgorithm(geneticAlgorithm, neuralNetwork)
+            {
+                DataSet = dataSets,
+                ErrorTolerance = Settings.Default.ErrorTolerance,
+                MaxIterations = Settings.Default.MaxGenerationCount
+            };
+
+            _algorithm.IterationEvent += (iteration, error, validationError) =>
+            {
+                var current = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                if (current - _milliseconds < 500) return;
+                _milliseconds = current;
+
+                AlgorithmErrorValues.Add(new ObservablePoint(iteration, error));
+                AlgorithmValidationValues.Add(new ObservablePoint(iteration, validationError));
+
+                if (AlgorithmErrorValues.Count <= 11) return;
+
+                AlgorithmErrorValues.RemoveAt(0);
+                AlgorithmValidationValues.RemoveAt(0);
+            };
+
+            _algorithmTask = Task.Run(() => _algorithm.Run());
+            _algorithmTask.ContinueWith(HandleAlgorithmResult);
+            ButtonStop.IsEnabled = true;
+        }
+
+        private void TabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var s = (TabControl) sender;
+            if (s.SelectedIndex != 0) return;
+
+            Application.Current.Dispatcher?.Invoke(() => Chart.UpdateLayout());
+        }
+
+        private void ButtonTraining_Click(object sender, RoutedEventArgs e) =>
+            TabControl.SelectedItem = TabTraining;
+
+        private void ButtonNeuralNetwork_Click(object sender, RoutedEventArgs e) =>
+            TabControl.SelectedItem = TabNeuralNetwork;
+
+        private void ButtonGeneticAlgorithm_Click(object sender, RoutedEventArgs e) =>
+            TabControl.SelectedItem = TabGeneticAlgorithm;
+
+        private void ButtonDataSet_Click(object sender, RoutedEventArgs e) =>
+            TabControl.SelectedItem = TabDataSet;
+
+        private void ButtonLoadData_Click(object sender, RoutedEventArgs e)
+        {
+            if (!UpDownLineSkip.Value.HasValue || !UpDownClassCount.Value.HasValue) return;
+
+            Mapper = new CsvMapper
+            {
+                Normalized = true,
+                Separator = TextBoxColumnSeparator.Text[0],
+                DecimalSeparator =
+                    CheckBoxDecimalSeparator.IsChecked != null && CheckBoxDecimalSeparator.IsChecked.Value ? '.' : ',',
+                SkipRows = (int) UpDownLineSkip.Value.Value
+            };
+
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "csv file (*.csv)|*.csv",
+                Multiselect = false
+            };
+
+            if (openFileDialog.ShowDialog() != true) return;
+
+            var filename = openFileDialog.FileName;
+            Data = Mapper.ReadDataFromFile(filename, Convert.ToInt32(UpDownClassCount.Value.Value));
+
+            DataGridHelper.SetTableData(DataGridSet, new TableData(Data));
+
+            ButtonStart.IsEnabled = true;
+        }
+
+        private void ButtonAddHiddenLayer_OnClick(object sender, RoutedEventArgs e)
+        {
+            Layers.Add(new LayerModel {LayerNo = Layers.Count + 1});
+        }
+
+        private void ButtonRemoveHiddenLayer_OnClick(object sender, RoutedEventArgs e)
+        {
+            Layers.Remove(Layers.Last());
+        }
+
+        private void ComboBoxActivationFunction_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Function = ActivationFunctionExtension.GetFunction(
+                (ActivationFunctionType) ((ComboBox) sender).SelectedItem);
+
+            if (UpDownBias.Value == null) return;
+
+            var bias = UpDownBias.Value.Value;
+            ActivationFunctionChartValues.ForEach(point => point.Y = Math.Round(Function.GetValue(point.X + bias), 3));
+        }
+
+        private void UpDownBias_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double?> e)
+        {
+            if (!UpDownBias.Value.HasValue) return;
+
+            if (UpDownT?.Value != null && Function is SigmoidFunction)
+                Function = new SigmoidFunction(UpDownT.Value.Value);
+
+            var bias = UpDownBias.Value.Value;
+            ActivationFunctionChartValues.ForEach(point => point.Y = Math.Round(Function.GetValue(point.X + bias), 3));
+        }
+
+        #endregion
 
         #region Settings
 
@@ -245,175 +430,6 @@ namespace SmartGen
             UpDownMaxIterations.Value = Defaults.Default.MaxGenerationCount;
             UpDownPopulationSize.Value = Defaults.Default.PopulationSize;
             UpDownErrorTolerance.Value = Defaults.Default.ErrorTolerance;
-        }
-
-        #endregion
-
-        #region Events
-
-        private void ButtonStop_OnClick(object sender, RoutedEventArgs e)
-        {
-            if (_algorithm == null) return;
-
-            ((Button) sender).IsEnabled = false;
-
-            ButtonStart.Dispatcher?.Invoke(() =>
-            {
-                ButtonStart.IsChecked = false;
-                ButtonStart.IsEnabled = false;
-            });
-
-            _algorithm.Stop();
-
-            Task.Run(() =>
-            {
-                _algorithmTask.Wait();
-                _trainedNetwork = _algorithm.GetTrainedNeuralNetwork();
-                _algorithm = null;
-            });
-        }
-
-        private void ButtonStartAlgorithm_Click(object sender, RoutedEventArgs e)
-        {
-            if (_algorithm != null)
-            {
-                var s = ((ToggleButton) sender).IsChecked;
-                _algorithm.IsPaused = !s ?? !_algorithm.IsPaused;
-                return;
-            }
-
-            AlgorithmErrorValues.Clear();
-            AlgorithmValidationValues.Clear();
-
-            var neuralNetwork = SmartGenAlgorithm.CreateNeuralNetwork();
-            var geneticAlgorithm = SmartGenAlgorithm.CreateGeneticAlgorithm(neuralNetwork.GetConnectionCount());
-
-            if (Settings.Default.InputLayerSize < Data.Attributes.First().Count)
-            {
-                var correlation = Correlation.GetCorrelation(Data);
-                Data = Data.RemoveLeastRelevantColumn(correlation, Settings.Default.InputLayerSize);
-            }
-
-            var dataSets = Data.SplitData(Settings.Default.TrainingRatio,
-                Settings.Default.TestRatio,
-                Settings.Default.ValidationRatio);
-
-            _algorithm = new SmartGenAlgorithm(geneticAlgorithm, neuralNetwork)
-            {
-                DataSet = dataSets,
-                ErrorTolerance = Settings.Default.ErrorTolerance,
-                MaxIterations = Settings.Default.MaxGenerationCount
-            };
-
-            _algorithm.IterationEvent += (iteration, error, validationError) =>
-            {
-                var current = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                if (current - _milliseconds < 500) return;
-                _milliseconds = current;
-
-                AlgorithmErrorValues.Add(new ObservablePoint(iteration, error));
-                AlgorithmValidationValues.Add(new ObservablePoint(iteration, validationError));
-
-                if (AlgorithmErrorValues.Count <= 11) return;
-
-                AlgorithmErrorValues.RemoveAt(0);
-                AlgorithmValidationValues.RemoveAt(0);
-            };
-
-            _algorithmTask = Task.Run(() => _algorithm.Run());
-            _algorithmTask.ContinueWith(task =>
-            {
-                ButtonStart.Dispatcher?.Invoke(() =>
-                {
-                    ButtonStart.IsChecked = false;
-                    ButtonStart.IsEnabled = true;
-                });
-                ButtonStop.Dispatcher?.Invoke(() => ButtonStop.IsEnabled = false);
-                _trainedNetwork = _algorithm.GetTrainedNeuralNetwork();
-                _algorithm = null;
-            });
-            ButtonStop.IsEnabled = true;
-        }
-
-        private void TabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var s = (TabControl) sender;
-            if (s.SelectedIndex != 0) return;
-
-            Application.Current.Dispatcher?.Invoke(() => Chart.UpdateLayout());
-        }
-
-        private void ButtonTraining_Click(object sender, RoutedEventArgs e) =>
-            TabControl.SelectedItem = TabTraining;
-
-        private void ButtonNeuralNetwork_Click(object sender, RoutedEventArgs e) =>
-            TabControl.SelectedItem = TabNeuralNetwork;
-
-        private void ButtonGeneticAlgorithm_Click(object sender, RoutedEventArgs e) =>
-            TabControl.SelectedItem = TabGeneticAlgorithm;
-
-        private void ButtonDataSet_Click(object sender, RoutedEventArgs e) =>
-            TabControl.SelectedItem = TabDataSet;
-
-        private void ButtonLoadData_Click(object sender, RoutedEventArgs e)
-        {
-            if (!UpDownLineSkip.Value.HasValue || !UpDownClassCount.Value.HasValue) return;
-
-            Mapper = new CsvMapper
-            {
-                Normalized = true,
-                Separator = TextBoxColumnSeparator.Text[0],
-                DecimalSeparator =
-                    CheckBoxDecimalSeparator.IsChecked != null && CheckBoxDecimalSeparator.IsChecked.Value ? '.' : ',',
-                SkipRows = (int) UpDownLineSkip.Value.Value
-            };
-
-            var openFileDialog = new OpenFileDialog
-            {
-                Filter = "csv file (*.csv)|*.csv",
-                Multiselect = false
-            };
-
-            if (openFileDialog.ShowDialog() != true) return;
-
-            var filename = openFileDialog.FileName;
-            Data = Mapper.ReadDataFromFile(filename, Convert.ToInt32(UpDownClassCount.Value.Value));
-
-            DataGridHelper.SetTableData(GridDataSet, new TableData(Data));
-
-            ButtonStart.IsEnabled = true;
-        }
-
-        private void ButtonAddHiddenLayer_OnClick(object sender, RoutedEventArgs e)
-        {
-            Layers.Add(new LayerModel {LayerNo = Layers.Count + 1});
-        }
-
-        private void ButtonRemoveHiddenLayer_OnClick(object sender, RoutedEventArgs e)
-        {
-            Layers.Remove(Layers.Last());
-        }
-
-        private void ComboBoxActivationFunction_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            Function = ActivationFunctionExtension.GetFunction(
-                (ActivationFunctionType) ((ComboBox) sender).SelectedItem);
-
-            if (UpDownBias.Value == null) return;
-
-            var bias = UpDownBias.Value.Value;
-            ActivationFunctionChartValues.ForEach(point => point.Y = Math.Round(Function.GetValue(point.X + bias), 3));
-        }
-
-        private void UpDownBias_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double?> e)
-        {
-            if (!UpDownBias.Value.HasValue) return;
-
-            if (UpDownT?.Value != null && Function is SigmoidFunction)
-                Function = new SigmoidFunction(UpDownT.Value.Value);
-
-            var bias = UpDownBias.Value.Value;
-            ActivationFunctionChartValues.ForEach(point => point.Y = Math.Round(Function.GetValue(point.X + bias), 3));
         }
 
         #endregion

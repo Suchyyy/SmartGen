@@ -15,13 +15,10 @@ namespace SmartGen.Model
             var format = new NumberFormatInfo
             {
                 NumberDecimalSeparator = ".",
-                NumberDecimalDigits = 3
+                NumberDecimalDigits = 2
             };
 
-            for (var i = 1; i <= data.ObjectClass.First().Count; i++)
-            {
-                ColumnHeaders.Add("class " + i);
-            }
+            ColumnHeaders.Add("class");
 
             for (var i = 1; i <= data.Attributes.First().Count; i++)
             {
@@ -30,7 +27,34 @@ namespace SmartGen.Model
 
             for (var i = 0; i < data.Attributes.Count; i++)
             {
-                var row = new TableDataRow(data.ObjectClass[i].Concat(data.Attributes[i])
+                var p = new List<double>(new[] {data.ObjectClass[i]});
+                var row = new TableDataRow(p.Concat(data.Attributes[i])
+                    .Select(d => d.ToString("N", format)).ToList());
+
+                Rows.Add(row);
+            }
+        }
+
+        public TableData(List<List<double>> predictions, Data data)
+        {
+            var format = new NumberFormatInfo
+            {
+                NumberDecimalSeparator = ".",
+                NumberDecimalDigits = 2
+            };
+
+            ColumnHeaders.Add("prediction");
+            ColumnHeaders.Add("class");
+
+            for (var i = 1; i <= data.Attributes.First().Count; i++)
+            {
+                ColumnHeaders.Add("attribute " + i);
+            }
+
+            for (var i = 0; i < data.Attributes.Count; i++)
+            {
+                var p = new List<double>(new[] {predictions[i][0], data.ObjectClass[i]});
+                var row = new TableDataRow(p.Concat(data.Attributes[i])
                     .Select(d => d.ToString("N", format)).ToList());
 
                 Rows.Add(row);

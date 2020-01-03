@@ -13,10 +13,10 @@ namespace SmartGen.Types
     {
         public static Selection GetSelection(SelectionType type, int populationSize, int size)
         {
-            // # TODO Rank selection
             switch (type)
             {
                 case SelectionType.Rank:
+                    return new RankSelection(populationSize);
                 case SelectionType.Tournament:
                 default:
                     return new TournamentSelection(populationSize, size);

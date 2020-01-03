@@ -5,12 +5,12 @@ using MoreLinq;
 
 namespace SmartGen.Model
 {
-    public class Data 
+    public class Data
     {
         private readonly Random _random = new Random(DateTime.Now.Millisecond);
 
         public List<List<double>> Attributes { get; } = new List<List<double>>();
-        public List<List<double>> ObjectClass { get; } = new List<List<double>>();
+        public List<double> ObjectClass { get; } = new List<double>();
 
         public Dictionary<DataType, Data> SplitData(int trainingRatio, int testRatio, int validationRatio)
         {
@@ -21,7 +21,7 @@ namespace SmartGen.Model
 
             var trainingProb = (double) trainingRatio / (trainingRatio + testRatio + validationRatio);
             var testProb = (double) (trainingRatio + testRatio) / (trainingRatio + testRatio + validationRatio);
-            
+
             for (var i = 0; i < Attributes.Count; i++)
             {
                 var rand = _random.NextDouble();
@@ -50,10 +50,9 @@ namespace SmartGen.Model
             return dictionary;
         }
 
-        public Data RemoveLeastRelevantColumn(List<List<double>> correlation, int resultColumnCount)
+        public Data RemoveLeastRelevantColumn(List<double> correlation, int resultColumnCount)
         {
-            if (correlation.Count != ObjectClass.First().Count ||
-                correlation.First().Count != Attributes.First().Count + ObjectClass.First().Count)
+            if (correlation.Count != Attributes.First().Count + 1)
             {
                 throw new IndexOutOfRangeException("invalid data");
             }
@@ -64,7 +63,7 @@ namespace SmartGen.Model
 
             for (var i = 0; i < Attributes.First().Count; i++)
             {
-                colWeights.Add(i, correlation.Sum(row => row[i]));
+                colWeights.Add(i, Math.Abs(correlation[i]));
             }
 
             colWeights = colWeights.OrderByDescending(pair => Math.Abs(pair.Value)).ToDictionary();
@@ -82,9 +81,9 @@ namespace SmartGen.Model
                 data.Attributes.Add(row);
             }
 
-            foreach (var classes in ObjectClass)
+            foreach (var c in ObjectClass)
             {
-                data.ObjectClass.Add(new List<double>(classes));
+                data.ObjectClass.Add(c);
             }
 
             return data;
