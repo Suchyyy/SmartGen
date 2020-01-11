@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -43,7 +42,7 @@ namespace SmartGen
 
         public MainWindow()
         {
-            Formatter = d => d.ToString("0.###", CultureInfo.InvariantCulture);
+            Formatter = d => d.ToString("0.####", CultureInfo.InvariantCulture);
             _milliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
             AlgorithmErrorValues = new ChartValues<ObservablePoint>();

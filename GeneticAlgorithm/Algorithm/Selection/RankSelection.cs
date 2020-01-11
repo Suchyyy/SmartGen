@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using GeneticAlgorithm.Utils;
 
 namespace GeneticAlgorithm.Algorithm.Selection
 {
@@ -21,7 +22,7 @@ namespace GeneticAlgorithm.Algorithm.Selection
             
             Parallel.For(0, _populationSize, i =>
             {
-                var r = Utils.ThreadSafeRandom.NextDouble() * _sum;
+                var r = ThreadSafeRandom.NextDouble() * _sum;
                 var index = (int) (0.5 * (Math.Sqrt(8 * r + 1) - 1));
 
                 NewPopulation[i] = sortedPopulation[index];
