@@ -27,7 +27,7 @@
       <Value Profile="(Default)">100</Value>
     </Setting>
     <Setting Name="ErrorTolerance" Type="System.Double" Scope="User">
-      <Value Profile="(Default)">15</Value>
+      <Value Profile="(Default)">0.1</Value>
     </Setting>
     <Setting Name="InputLayerSize" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">100</Value>

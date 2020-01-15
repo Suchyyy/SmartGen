@@ -121,7 +121,7 @@ namespace SmartGen.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("15")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.1")]
         public double ErrorTolerance {
             get {
                 return ((double)(this["ErrorTolerance"]));
